@@ -1,0 +1,43 @@
+type Album {
+  name: String!
+  year: Int!
+  artist: String!
+  totalVote: Int!
+  voters: [User!]!
+}
+
+type User {
+  id: ID!
+  name: String!
+} 
+
+input NewUser {
+  name: String!
+  password: String!
+}
+
+input Login {
+  username: String!
+  password: String!
+}
+
+input AlbumSearch {
+  name: String!
+  artist: String!
+}
+
+input AlbumVote {
+  name: String!
+  artist: String!
+}
+
+type Query {
+  getAllAlbums(): [Album!]!
+  getAlbum(input: AlbumSearch): [Album!]!
+}
+
+type Mutation {
+  voteAlbum(input: AlbumVote!): Album!
+  signUp(input: NewUser!): String!
+  signIn(input: Login!): String!
+}
