@@ -7,7 +7,7 @@ package graph
 import (
 	"context"
 	"fmt"
-	"music/graph/model"
+	"music-service/graph/model"
 )
 
 // UploadAlbum is the resolver for the uploadAlbum field.

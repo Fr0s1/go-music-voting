@@ -1,4 +1,4 @@
-module music
+module music-service
 
 go 1.21.3
 

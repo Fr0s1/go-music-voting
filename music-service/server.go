@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"music/graph"
+	"music-service/graph"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"

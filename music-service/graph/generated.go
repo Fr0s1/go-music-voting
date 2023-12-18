@@ -8,7 +8,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"music/graph/model"
+	"music-service/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -317,7 +317,7 @@ func (ec *executionContext) field_Mutation_uploadAlbum_args(ctx context.Context,
 	var arg0 model.NewAlbum
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewAlbum2musicᚋgraphᚋmodelᚐNewAlbum(ctx, tmp)
+		arg0, err = ec.unmarshalNNewAlbum2musicᚑserviceᚋgraphᚋmodelᚐNewAlbum(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -347,7 +347,7 @@ func (ec *executionContext) field_Query_getAlbum_args(ctx context.Context, rawAr
 	var arg0 model.AlbumSearch
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAlbumSearch2musicᚋgraphᚋmodelᚐAlbumSearch(ctx, tmp)
+		arg0, err = ec.unmarshalNAlbumSearch2musicᚑserviceᚋgraphᚋmodelᚐAlbumSearch(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -642,7 +642,7 @@ func (ec *executionContext) _Album_uploader(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖmusicᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖmusicᚑserviceᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Album_uploader(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -692,7 +692,7 @@ func (ec *executionContext) _Mutation_uploadAlbum(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.Album)
 	fc.Result = res
-	return ec.marshalNAlbum2ᚖmusicᚋgraphᚋmodelᚐAlbum(ctx, field.Selections, res)
+	return ec.marshalNAlbum2ᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbum(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_uploadAlbum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -761,7 +761,7 @@ func (ec *executionContext) _Query_getAlbum(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.Album)
 	fc.Result = res
-	return ec.marshalNAlbum2ᚕᚖmusicᚋgraphᚋmodelᚐAlbumᚄ(ctx, field.Selections, res)
+	return ec.marshalNAlbum2ᚕᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbumᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getAlbum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -830,7 +830,7 @@ func (ec *executionContext) _Query_getAllAlbums(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.Album)
 	fc.Result = res
-	return ec.marshalNAlbum2ᚕᚖmusicᚋgraphᚋmodelᚐAlbumᚄ(ctx, field.Selections, res)
+	return ec.marshalNAlbum2ᚕᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbumᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getAllAlbums(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3510,11 +3510,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAlbum2musicᚋgraphᚋmodelᚐAlbum(ctx context.Context, sel ast.SelectionSet, v model.Album) graphql.Marshaler {
+func (ec *executionContext) marshalNAlbum2musicᚑserviceᚋgraphᚋmodelᚐAlbum(ctx context.Context, sel ast.SelectionSet, v model.Album) graphql.Marshaler {
 	return ec._Album(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAlbum2ᚕᚖmusicᚋgraphᚋmodelᚐAlbumᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Album) graphql.Marshaler {
+func (ec *executionContext) marshalNAlbum2ᚕᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbumᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Album) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3538,7 +3538,7 @@ func (ec *executionContext) marshalNAlbum2ᚕᚖmusicᚋgraphᚋmodelᚐAlbumᚄ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAlbum2ᚖmusicᚋgraphᚋmodelᚐAlbum(ctx, sel, v[i])
+			ret[i] = ec.marshalNAlbum2ᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbum(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3558,7 +3558,7 @@ func (ec *executionContext) marshalNAlbum2ᚕᚖmusicᚋgraphᚋmodelᚐAlbumᚄ
 	return ret
 }
 
-func (ec *executionContext) marshalNAlbum2ᚖmusicᚋgraphᚋmodelᚐAlbum(ctx context.Context, sel ast.SelectionSet, v *model.Album) graphql.Marshaler {
+func (ec *executionContext) marshalNAlbum2ᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbum(ctx context.Context, sel ast.SelectionSet, v *model.Album) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3568,7 +3568,7 @@ func (ec *executionContext) marshalNAlbum2ᚖmusicᚋgraphᚋmodelᚐAlbum(ctx c
 	return ec._Album(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAlbumSearch2musicᚋgraphᚋmodelᚐAlbumSearch(ctx context.Context, v interface{}) (model.AlbumSearch, error) {
+func (ec *executionContext) unmarshalNAlbumSearch2musicᚑserviceᚋgraphᚋmodelᚐAlbumSearch(ctx context.Context, v interface{}) (model.AlbumSearch, error) {
 	res, err := ec.unmarshalInputAlbumSearch(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3618,7 +3618,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewAlbum2musicᚋgraphᚋmodelᚐNewAlbum(ctx context.Context, v interface{}) (model.NewAlbum, error) {
+func (ec *executionContext) unmarshalNNewAlbum2musicᚑserviceᚋgraphᚋmodelᚐNewAlbum(ctx context.Context, v interface{}) (model.NewAlbum, error) {
 	res, err := ec.unmarshalInputNewAlbum(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3638,7 +3638,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNUser2ᚖmusicᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖmusicᚑserviceᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
