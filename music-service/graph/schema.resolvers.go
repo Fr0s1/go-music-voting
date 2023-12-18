@@ -7,18 +7,22 @@ package graph
 import (
 	"context"
 	"fmt"
-
-	"github.com/Fr0s1/go-music-voting/graph/model"
+	"music/graph/model"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+// UploadAlbum is the resolver for the uploadAlbum field.
+func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum) (*model.Album, error) {
+	panic(fmt.Errorf("not implemented: UploadAlbum - uploadAlbum"))
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+// GetAlbum is the resolver for the getAlbum field.
+func (r *queryResolver) GetAlbum(ctx context.Context, input model.AlbumSearch) ([]*model.Album, error) {
+	panic(fmt.Errorf("not implemented: GetAlbum - getAlbum"))
+}
+
+// GetAllAlbums is the resolver for the getAllAlbums field.
+func (r *queryResolver) GetAllAlbums(ctx context.Context) ([]*model.Album, error) {
+	panic(fmt.Errorf("not implemented: GetAllAlbums - getAllAlbums"))
 }
 
 // Mutation returns MutationResolver implementation.

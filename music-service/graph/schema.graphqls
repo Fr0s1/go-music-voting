@@ -1,24 +1,21 @@
 type Album {
+  id: ID!
   name: String!
   year: Int!
   artist: String!
-  totalVote: Int!
-  voters: [User!]!
+  genre: String!
+  uploader: User!
 }
 
 type User {
   id: ID!
-  name: String!
+  username: String!
 } 
 
-input NewUser {
+input NewAlbum {
   name: String!
-  password: String!
-}
-
-input Login {
-  username: String!
-  password: String!
+  artist: String!
+  genre: String!
 }
 
 input AlbumSearch {
@@ -26,18 +23,11 @@ input AlbumSearch {
   artist: String!
 }
 
-input AlbumVote {
-  name: String!
-  artist: String!
-}
-
 type Query {
-  getAllAlbums(): [Album!]!
-  getAlbum(input: AlbumSearch): [Album!]!
+  getAlbum(input: AlbumSearch!): [Album!]!
+  getAllAlbums: [Album!]!
 }
 
 type Mutation {
-  voteAlbum(input: AlbumVote!): Album!
-  signUp(input: NewUser!): String!
-  signIn(input: Login!): String!
+  uploadAlbum(input: NewAlbum!): Album!
 }

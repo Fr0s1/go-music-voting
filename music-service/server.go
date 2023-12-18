@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"os"
 
+	"music/graph"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/Fr0s1/go-music-voting/graph"
 )
 
-const defaultPort = "8080"
+const defaultPort = "8000"
 
 func main() {
 	port := os.Getenv("PORT")

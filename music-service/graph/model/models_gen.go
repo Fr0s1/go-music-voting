@@ -2,19 +2,27 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+type Album struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Year     int    `json:"year"`
+	Artist   string `json:"artist"`
+	Genre    string `json:"genre"`
+	Uploader *User  `json:"uploader"`
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type AlbumSearch struct {
+	Name   string `json:"name"`
+	Artist string `json:"artist"`
+}
+
+type NewAlbum struct {
+	Name   string `json:"name"`
+	Artist string `json:"artist"`
+	Genre  string `json:"genre"`
 }
 
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
 }
