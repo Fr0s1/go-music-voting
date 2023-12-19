@@ -29,9 +29,8 @@ func ParseToken(tokenStr string) (user.User, error) {
 		}
 		row := statement.QueryRow(username)
 
-		var Id int32
-		var Username string
-		err = row.Scan(&Id, &Username)
+		var u user.User
+		err = row.Scan(&u.Id, &u.Username)
 		if err != nil {
 			if err != sql.ErrNoRows {
 				log.Print(err)
@@ -39,7 +38,7 @@ func ParseToken(tokenStr string) (user.User, error) {
 			return user.User{}, err
 		}
 
-		return user.User{Id: Id, Username: Username}, nil
+		return u, nil
 	} else {
 		return user.User{}, err
 	}

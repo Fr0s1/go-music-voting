@@ -10,6 +10,8 @@ import (
 	jwt "user-grpc/pkg/jwt"
 
 	"google.golang.org/grpc"
+
+	database "user-grpc/pkg/db/mysql"
 )
 
 var (
@@ -28,13 +30,16 @@ func (s *UserCredentialsServer) GetUser(ctx context.Context, in *pb.UserJWTToken
 }
 
 func main() {
-	fmt.Print("test")
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost: %d", *port))
 
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	database.InitDB()
+
+	defer database.CloseDB()
 
 	grpcServer := grpc.NewServer()
 
