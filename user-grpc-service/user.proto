@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "./grpc";
+
+message User {
+  int32 id = 1;
+  string username = 2;
+}
+
+message UserJWTToken {
+  string token = 1;
+}
+
+service UserCredentials {
+  rpc GetUser(UserJWTToken) returns (User) {}
+}
