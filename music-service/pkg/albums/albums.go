@@ -1,6 +1,9 @@
 package albums
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	database "music-service/pkg/db/mysql"
 
@@ -38,4 +41,68 @@ func (album *Album) Save() int64 {
 	log.Print("Album added!")
 
 	return id
+}
+
+func GetAlbum(albumName string, artist string) (Album, error) {
+	stmt, err := database.Db.Prepare("SELECT a.ID, a.Name, a.Artist, a.Genre, a.ReleasedYear, u.ID, u.Username  FROM Albums a JOIN Users u on a.UploaderID = u.ID WHERE a.Name = ? and a.Artist = ?")
+
+	fmt.Println("Reach GetAlbum sql")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rows := stmt.QueryRow(albumName, artist)
+
+	var album Album
+	var user users.User
+
+	err = rows.Scan(&album.ID, &album.Name, &album.Artist, &album.Genre, &album.Year, &user.Id, &user.Username)
+
+	fmt.Println("Reach GetAlbum sql 2")
+
+	if err != nil {
+		if errors.As(err, &sql.ErrNoRows) {
+			fmt.Errorf("No albums exist with name %s of artist %s", albumName, artist)
+		}
+	}
+
+	album.Uploader = &user
+
+	return album, nil
+}
+
+func GetAll() []Album {
+	stmt, err := database.Db.Prepare("SELECT a.ID, a.Name, a.Artist, a.Genre, a.ReleasedYear, u.ID, u.Username  FROM Albums a JOIN Users u on a.UploaderID = u.ID")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rows, err := stmt.Query()
+
+	defer stmt.Close()
+
+	var albums []Album
+
+	for rows.Next() {
+		var album Album
+
+		var user users.User
+
+		err := rows.Scan(&album.ID, &album.Name, &album.Artist, &album.Genre, &album.Year, &user.Id, &user.Username)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		album.Uploader = &user
+
+		albums = append(albums, album)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return albums
 }

@@ -8,10 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"music-service/graph/model"
 	"music-service/pkg/albums"
 	"music-service/pkg/auth"
-	"music-service/pkg/users"
 	"strconv"
 )
 
@@ -19,13 +19,15 @@ import (
 func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum) (*model.Album, error) {
 	user := auth.ForContext(ctx)
 
+	fmt.Printf("User %+v", user)
+
 	user_json, _ := json.Marshal(user)
 
 	fmt.Println("User info: %v", string(user_json))
 
 	fmt.Println("Reach UploadAlbum function")
 
-	if user == (&users.User{}) {
+	if user == nil {
 		return &model.Album{}, fmt.Errorf("access denied")
 	}
 
@@ -47,12 +49,54 @@ func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum
 
 // GetAlbum is the resolver for the getAlbum field.
 func (r *queryResolver) GetAlbum(ctx context.Context, input model.AlbumSearch) ([]*model.Album, error) {
-	panic(fmt.Errorf("not implemented: GetAlbum - getAlbum"))
+	album, err := albums.GetAlbum(input.Name, input.Artist)
+
+	fmt.Println("Reach GetAlbum resolver")
+
+	var albums []*model.Album
+
+	if err != nil {
+		log.Fatal(err)
+
+		return albums, nil
+	}
+
+	if album.ID == "" {
+		return albums, nil
+	}
+
+	graphql_album := &model.Album{ID: album.ID, Name: album.Name, Artist: album.Artist, Genre: album.Genre, Year: album.Year, Uploader: &model.User{ID: album.Uploader.Id, Username: album.Uploader.Username}}
+
+	albums = append(albums, graphql_album)
+
+	return albums, nil
 }
 
 // GetAllAlbums is the resolver for the getAllAlbums field.
 func (r *queryResolver) GetAllAlbums(ctx context.Context) ([]*model.Album, error) {
-	panic(fmt.Errorf("not implemented: GetAllAlbums - getAllAlbums"))
+	var resultAlbums []*model.Album
+
+	albums := albums.GetAll()
+
+	for _, album := range albums {
+		uploader := &model.User{
+			ID:       album.Uploader.Id,
+			Username: album.Uploader.Username,
+		}
+
+		graphql_album := &model.Album{
+			ID:       album.ID,
+			Name:     album.Name,
+			Year:     album.Year,
+			Artist:   album.Artist,
+			Genre:    album.Genre,
+			Uploader: uploader,
+		}
+
+		resultAlbums = append(resultAlbums, graphql_album)
+	}
+
+	return resultAlbums, nil
 }
 
 // Mutation returns MutationResolver implementation.

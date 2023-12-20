@@ -21,7 +21,7 @@ type contextKey struct {
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("Reach here")
+			fmt.Println("Reach middleware here")
 			header := r.Header.Get("Authorization")
 
 			if header == "" {
@@ -29,7 +29,7 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 
-			fmt.Println("Reach here 1")
+			fmt.Println("Reach middleware here 1")
 			grpc_ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 			defer cancel()
@@ -38,7 +38,7 @@ func Middleware() func(http.Handler) http.Handler {
 
 			grpc_user, err := grpc_client.GrpcClient.GetUser(grpc_ctx, &pb.UserJWTToken{Token: tokenStr})
 
-			fmt.Println("Reach here 3")
+			fmt.Println("Reach middleware here 3")
 			user := users.User{Id: strconv.Itoa(int(grpc_user.Id)), Username: grpc_user.Username}
 
 			fmt.Printf("User: %v", user)
