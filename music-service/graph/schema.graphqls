@@ -16,6 +16,7 @@ input NewAlbum {
   name: String!
   artist: String!
   genre: String!
+  year: Int!
 }
 
 input AlbumSearch {

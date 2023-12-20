@@ -1,21 +1,22 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"music-service/graph"
-
-	pb "music-service/pkg/grpc"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 
 	grpc_client "music-service/pkg/grpc/client"
+
+	database "music-service/pkg/db/mysql"
+
+	"music-service/pkg/auth"
+
+	"github.com/go-chi/chi/v5"
 )
 
 const defaultPort = "8000"
@@ -26,25 +27,23 @@ func main() {
 		port = defaultPort
 	}
 
+	router := chi.NewRouter()
+
+	router.Use(auth.Middleware())
+
 	grpc_client.InitConnection()
 
-	defer grpc_client.CloseConnection()
+	database.InitDB()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer database.CloseDB()
 
-	defer cancel()
-
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDMwNjQyOTgsInVzZXJuYW1lIjoiZnJvc3QifQ.kpB90p7E07MbwI0zSNi2zdtY2-A4WSbABL3C1P_8zLc"
-
-	r, _ := grpc_client.GrpcClient.GetUser(ctx, &pb.UserJWTToken{Token: token})
-
-	fmt.Printf("Info: %+v\n", r)
+	// defer grpc_client.CloseConnection()
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

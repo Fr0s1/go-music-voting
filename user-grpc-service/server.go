@@ -24,7 +24,11 @@ type UserCredentialsServer struct {
 
 func (s *UserCredentialsServer) GetUser(ctx context.Context, in *pb.UserJWTToken) (*pb.User, error) {
 
-	user, _ := jwt.ParseToken(in.Token)
+	user, err := jwt.ParseToken(in.Token)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &user, nil
 }

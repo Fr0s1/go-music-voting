@@ -2891,7 +2891,7 @@ func (ec *executionContext) unmarshalInputNewAlbum(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "artist", "genre"}
+	fieldsInOrder := [...]string{"name", "artist", "genre", "year"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -2919,6 +2919,13 @@ func (ec *executionContext) unmarshalInputNewAlbum(ctx context.Context, obj inte
 				return it, err
 			}
 			it.Genre = data
+		case "year":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("year"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Year = data
 		}
 	}
 

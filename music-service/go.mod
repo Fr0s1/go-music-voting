@@ -5,9 +5,9 @@ go 1.21.3
 require (
 	github.com/99designs/gqlgen v0.17.41
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/vektah/gqlparser/v2 v2.5.10
-	golang.org/x/crypto v0.17.0
 	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.31.0
 )

@@ -20,6 +20,7 @@ type NewAlbum struct {
 	Name   string `json:"name"`
 	Artist string `json:"artist"`
 	Genre  string `json:"genre"`
+	Year   int    `json:"year"`
 }
 
 type User struct {

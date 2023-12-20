@@ -36,6 +36,6 @@ func InitConnection() {
 	GrpcClient = c
 }
 
-func CloseConnection() {
-	GrpcConnection.Close()
-}
+// func CloseConnection() {
+// 	GrpcConnection.Close()
+// }

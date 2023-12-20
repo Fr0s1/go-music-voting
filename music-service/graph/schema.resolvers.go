@@ -6,13 +6,43 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"music-service/graph/model"
+	"music-service/pkg/albums"
+	"music-service/pkg/auth"
+	"music-service/pkg/users"
+	"strconv"
 )
 
 // UploadAlbum is the resolver for the uploadAlbum field.
 func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum) (*model.Album, error) {
-	panic(fmt.Errorf("not implemented: UploadAlbum - uploadAlbum"))
+	user := auth.ForContext(ctx)
+
+	user_json, _ := json.Marshal(user)
+
+	fmt.Println("User info: %v", string(user_json))
+
+	fmt.Println("Reach UploadAlbum function")
+
+	if user == (&users.User{}) {
+		return &model.Album{}, fmt.Errorf("access denied")
+	}
+
+	var album albums.Album
+
+	album.Name = input.Name
+	album.Artist = input.Artist
+	album.Genre = input.Genre
+	album.Year = input.Year
+
+	album.Uploader = user
+
+	fmt.Println("Reach insert statement")
+
+	albumId := album.Save()
+
+	return &model.Album{ID: strconv.Itoa(int(albumId)), Name: album.Name, Artist: album.Artist, Genre: album.Genre, Year: album.Year, Uploader: &model.User{ID: user.Id, Username: user.Username}}, nil
 }
 
 // GetAlbum is the resolver for the getAlbum field.
