@@ -1,0 +1,55 @@
+syntax = "proto3"
+
+message Album {
+  int64 id = 1;
+  string name = 2;
+  string artist = 3;
+}
+
+message User {
+  int32 id = 1;
+  string username = 2;
+}
+
+message Poll {
+  string name = 1;
+  int32 id = 2; 
+  repeated Album albums = 3;
+}
+
+message Vote {
+  
+}
+
+message PollQuery {
+  int32 poll_id = 1;
+}
+
+message AlbumVotesQuery {
+  int32 poll_id = 1;
+  int64 album_id = 2;
+}
+
+message NewPoll {
+  string name = 1;
+  User creator = 2;
+}
+
+message NewPollAlbum {
+  int64 poll_id = 1;
+  int64
+}
+
+message NewVote {
+  int32 poll_id = 1;
+  int64 album_id = 2;
+  int32 user_id = 2; 
+}
+
+service Voting {
+  rpc CreatePoll(NewPoll) returns (Poll) {}
+  rpc AddPollAlbum
+  rpc GetPoll(PollQuery) returns (Poll) {}
+  rpc VoteAlbum(NewVote) returns (Vote) {}
+  rpc GetAlbumVote(AlbumVotesQuery) returns (stream Vote)
+}
