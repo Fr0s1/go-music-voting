@@ -33,6 +33,28 @@ func (s *UserCredentialsServer) GetUser(ctx context.Context, in *pb.UserJWTToken
 	return &user, nil
 }
 
+func (s *UserCredentialsServer) GetUserDetails(ctx context.Context, in *pb.UserQuery) (*pb.User, error) {
+	user_id := in.UserId
+
+	stmt, err := database.Db.Prepare("SELECT Username FROM Users WHERE ID = (?)")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	row := stmt.QueryRow(user_id)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var username string
+
+	err = row.Scan(&username)
+
+	return &pb.User{Id: user_id, Username: username}, nil
+}
+
 func main() {
 	flag.Parse()
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost: %d", *port))

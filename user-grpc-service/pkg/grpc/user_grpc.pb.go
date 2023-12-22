@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserCredentialsClient interface {
 	GetUser(ctx context.Context, in *UserJWTToken, opts ...grpc.CallOption) (*User, error)
+	GetUserDetails(ctx context.Context, in *UserQuery, opts ...grpc.CallOption) (*User, error)
 }
 
 type userCredentialsClient struct {
@@ -42,11 +43,21 @@ func (c *userCredentialsClient) GetUser(ctx context.Context, in *UserJWTToken, o
 	return out, nil
 }
 
+func (c *userCredentialsClient) GetUserDetails(ctx context.Context, in *UserQuery, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, "/grpc.UserCredentials/GetUserDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserCredentialsServer is the server API for UserCredentials service.
 // All implementations must embed UnimplementedUserCredentialsServer
 // for forward compatibility
 type UserCredentialsServer interface {
 	GetUser(context.Context, *UserJWTToken) (*User, error)
+	GetUserDetails(context.Context, *UserQuery) (*User, error)
 	mustEmbedUnimplementedUserCredentialsServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedUserCredentialsServer struct {
 
 func (UnimplementedUserCredentialsServer) GetUser(context.Context, *UserJWTToken) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserCredentialsServer) GetUserDetails(context.Context, *UserQuery) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserDetails not implemented")
 }
 func (UnimplementedUserCredentialsServer) mustEmbedUnimplementedUserCredentialsServer() {}
 
@@ -88,6 +102,24 @@ func _UserCredentials_GetUser_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserCredentials_GetUserDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserQuery)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserCredentialsServer).GetUserDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.UserCredentials/GetUserDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserCredentialsServer).GetUserDetails(ctx, req.(*UserQuery))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserCredentials_ServiceDesc is the grpc.ServiceDesc for UserCredentials service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var UserCredentials_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _UserCredentials_GetUser_Handler,
+		},
+		{
+			MethodName: "GetUserDetails",
+			Handler:    _UserCredentials_GetUserDetails_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

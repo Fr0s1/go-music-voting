@@ -1,4 +1,10 @@
-syntax = "proto3"
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "./grpc";
+
+import "user.proto";
 
 message Album {
   int64 id = 1;
@@ -6,19 +12,17 @@ message Album {
   string artist = 3;
 }
 
-message User {
-  int32 id = 1;
-  string username = 2;
-}
-
 message Poll {
   string name = 1;
-  int32 id = 2; 
+  int64 id = 2; 
   repeated Album albums = 3;
+  int32 creator_id = 4;
 }
 
 message Vote {
-  
+  int32 poll_id = 1;
+  int64 album_id = 2;
+  int32 user_id = 3; 
 }
 
 message PollQuery {
@@ -32,24 +36,23 @@ message AlbumVotesQuery {
 
 message NewPoll {
   string name = 1;
-  User creator = 2;
+  int32 creator_id = 2;
 }
 
 message NewPollAlbum {
   int64 poll_id = 1;
-  int64
+  int64 album_id = 2;
 }
 
-message NewVote {
+message NewPollAlbumResponse {
   int32 poll_id = 1;
-  int64 album_id = 2;
-  int32 user_id = 2; 
+  Album album = 2;
 }
 
 service Voting {
   rpc CreatePoll(NewPoll) returns (Poll) {}
-  rpc AddPollAlbum
-  rpc GetPoll(PollQuery) returns (Poll) {}
-  rpc VoteAlbum(NewVote) returns (Vote) {}
-  rpc GetAlbumVote(AlbumVotesQuery) returns (stream Vote)
+  rpc AddPollAlbums(stream NewPollAlbum) returns (stream NewPollAlbumResponse) {}
+  rpc GetPollDetails(PollQuery) returns (Poll) {}
+  rpc VoteAlbum(Vote) returns (Vote) {}
+  rpc GetAlbumVote(AlbumVotesQuery) returns (stream Vote) {}
 }
