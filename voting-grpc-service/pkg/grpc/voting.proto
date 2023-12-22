@@ -20,13 +20,13 @@ message Poll {
 }
 
 message Vote {
-  int32 poll_id = 1;
+  int64 poll_id = 1;
   int64 album_id = 2;
   int32 user_id = 3; 
 }
 
 message PollQuery {
-  int32 poll_id = 1;
+  int64 poll_id = 1;
 }
 
 message AlbumVotesQuery {
@@ -45,14 +45,27 @@ message NewPollAlbum {
 }
 
 message NewPollAlbumResponse {
-  int32 poll_id = 1;
+  int64 poll_id = 1;
   Album album = 2;
+}
+
+message PollDetails {
+  string name = 1;
+  int64 id = 2;
+  int32 creator_id = 3;
+
+  message AlbumVote {
+    Album album = 1;
+    repeated Vote votes = 2;
+  }
+
+  repeated AlbumVote album_votes = 4;
 }
 
 service Voting {
   rpc CreatePoll(NewPoll) returns (Poll) {}
   rpc AddPollAlbums(stream NewPollAlbum) returns (stream NewPollAlbumResponse) {}
-  rpc GetPollDetails(PollQuery) returns (Poll) {}
+  rpc GetPollDetails(PollQuery) returns (PollDetails) {}
   rpc VoteAlbum(Vote) returns (Vote) {}
   rpc GetAlbumVote(AlbumVotesQuery) returns (stream Vote) {}
 }

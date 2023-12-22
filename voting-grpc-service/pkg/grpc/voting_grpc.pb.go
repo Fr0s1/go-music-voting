@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type VotingClient interface {
 	CreatePoll(ctx context.Context, in *NewPoll, opts ...grpc.CallOption) (*Poll, error)
 	AddPollAlbums(ctx context.Context, opts ...grpc.CallOption) (Voting_AddPollAlbumsClient, error)
-	GetPollDetails(ctx context.Context, in *PollQuery, opts ...grpc.CallOption) (*Poll, error)
+	GetPollDetails(ctx context.Context, in *PollQuery, opts ...grpc.CallOption) (*PollDetails, error)
 	VoteAlbum(ctx context.Context, in *Vote, opts ...grpc.CallOption) (*Vote, error)
 	GetAlbumVote(ctx context.Context, in *AlbumVotesQuery, opts ...grpc.CallOption) (Voting_GetAlbumVoteClient, error)
 }
@@ -77,8 +77,8 @@ func (x *votingAddPollAlbumsClient) Recv() (*NewPollAlbumResponse, error) {
 	return m, nil
 }
 
-func (c *votingClient) GetPollDetails(ctx context.Context, in *PollQuery, opts ...grpc.CallOption) (*Poll, error) {
-	out := new(Poll)
+func (c *votingClient) GetPollDetails(ctx context.Context, in *PollQuery, opts ...grpc.CallOption) (*PollDetails, error) {
+	out := new(PollDetails)
 	err := c.cc.Invoke(ctx, "/grpc.Voting/GetPollDetails", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (x *votingGetAlbumVoteClient) Recv() (*Vote, error) {
 type VotingServer interface {
 	CreatePoll(context.Context, *NewPoll) (*Poll, error)
 	AddPollAlbums(Voting_AddPollAlbumsServer) error
-	GetPollDetails(context.Context, *PollQuery) (*Poll, error)
+	GetPollDetails(context.Context, *PollQuery) (*PollDetails, error)
 	VoteAlbum(context.Context, *Vote) (*Vote, error)
 	GetAlbumVote(*AlbumVotesQuery, Voting_GetAlbumVoteServer) error
 	mustEmbedUnimplementedVotingServer()
@@ -149,7 +149,7 @@ func (UnimplementedVotingServer) CreatePoll(context.Context, *NewPoll) (*Poll, e
 func (UnimplementedVotingServer) AddPollAlbums(Voting_AddPollAlbumsServer) error {
 	return status.Errorf(codes.Unimplemented, "method AddPollAlbums not implemented")
 }
-func (UnimplementedVotingServer) GetPollDetails(context.Context, *PollQuery) (*Poll, error) {
+func (UnimplementedVotingServer) GetPollDetails(context.Context, *PollQuery) (*PollDetails, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPollDetails not implemented")
 }
 func (UnimplementedVotingServer) VoteAlbum(context.Context, *Vote) (*Vote, error) {
