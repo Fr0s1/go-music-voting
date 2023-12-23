@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"net"
 	"sync"
 	"time"
+
 	pb "voting-grpc/pkg/grpc"
 
 	"google.golang.org/grpc"
@@ -122,6 +124,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 	fmt.Println("GetPollDetails: Reach here")
 	rows, err := database.Db.Query("SELECT p.Name, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p JOIN Poll_Album pa on p.ID = pa.PollID JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
 
+	// Keep track
 	totalAlbum := 0
 
 	if err != nil {
@@ -146,36 +149,45 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		}
 		fmt.Println("GetPollDetails: Reach here 3")
 		fmt.Println("Album value: %v", album)
+
 		// wg.Add(1)
+		ctx, cancelFunc := context.WithTimeoutCause(ctx, time.Second*2, errors.New("query db takes too long"))
+		defer cancelFunc()
 
-		go func(pollId int64, albumId int64, albumVotesChan chan<- map[model.Album][]*pb.Vote) {
-			time.Sleep(time.Second * 1)
-			// defer wg.Done()
-			fmt.Println("GetPollDetails Routine: Reach here 1")
-			rows_routine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, albumId)
-			defer rows_routine.Close()
-			fmt.Println("GetPollDetails Routine: Reach here 2")
+		go func(pollId int64, albumId int64, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context) {
+			select {
+			case <-ctx.Done():
+				fmt.Println("Error when querying database: ", ctx.Err())
 
-			var vote pb.Vote
+				return
+			default:
+				fmt.Println("GetPollDetails Routine: Reach here 1")
+				rows_routine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, albumId)
+				defer rows_routine.Close()
+				fmt.Println("GetPollDetails Routine: Reach here 2")
 
-			albumVotesMap := make(map[model.Album][]*pb.Vote)
+				var vote pb.Vote
 
-			for rows_routine.Next() {
-				fmt.Println("GetPollDetails Routine: Reach here 3")
-				if err := rows_routine.Scan(&vote.UserId, &vote.PollId, &vote.AlbumId); err != nil {
-					fmt.Println(err.Error())
+				albumVotesMap := make(map[model.Album][]*pb.Vote)
+
+				for rows_routine.Next() {
+					fmt.Println("GetPollDetails Routine: Reach here 3")
+					if err := rows_routine.Scan(&vote.UserId, &vote.PollId, &vote.AlbumId); err != nil {
+						fmt.Println(err.Error())
+					}
+					fmt.Println("GetPollDetails Routine: Reach here 4")
+
+					fmt.Printf("Value: %+v\n", vote)
+
+					albumVotesMap[album] = append(albumVotesMap[album], &vote)
 				}
-				fmt.Println("GetPollDetails Routine: Reach here 4")
-
-				fmt.Printf("Value: %+v\n", vote)
-
-				albumVotesMap[album] = append(albumVotesMap[album], &vote)
+				fmt.Println("GetPollDetails Routine: Reach here 5")
+				albumVotesChan <- albumVotesMap
+				fmt.Println("GetPollDetails Routine: Reach here 6")
 			}
-			fmt.Println("GetPollDetails Routine: Reach here 5")
-			albumVotesChan <- albumVotesMap
-			fmt.Println("GetPollDetails Routine: Reach here 6")
+			// defer wg.Done()
 
-		}(pollId, album.Id, albumVotesChan)
+		}(pollId, album.Id, albumVotesChan, ctx)
 	}
 	fmt.Println("GetPollDetails: Reach here 4")
 	// wg.Wait()

@@ -13,19 +13,21 @@ import (
 	"music-service/pkg/albums"
 	"music-service/pkg/auth"
 	"strconv"
+
+	logging "music-service/pkg/logging"
 )
 
 // UploadAlbum is the resolver for the uploadAlbum field.
 func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum) (*model.Album, error) {
 	user := auth.ForContext(ctx)
 
-	fmt.Printf("User %+v", user)
+	logging.Log.WithFields(logging.StandardFields).Info("User: ", user)
 
 	user_json, _ := json.Marshal(user)
 
-	fmt.Println("User info: %v", string(user_json))
+	logging.Log.WithFields(logging.StandardFields).Info("User info: ", string(user_json))
 
-	fmt.Println("Reach UploadAlbum function")
+	logging.Log.WithFields(logging.StandardFields).Info("Reach UploadAlbum function")
 
 	if user == nil {
 		return &model.Album{}, fmt.Errorf("access denied")
@@ -40,7 +42,7 @@ func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum
 
 	album.Uploader = user
 
-	fmt.Println("Reach insert statement")
+	logging.Log.WithFields(logging.StandardFields).Info("Reach insert statement: album ", album)
 
 	albumId := album.Save()
 

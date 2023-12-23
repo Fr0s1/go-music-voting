@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -17,6 +16,8 @@ import (
 	"music-service/pkg/auth"
 
 	"github.com/go-chi/chi/v5"
+
+	logging "music-service/pkg/logging"
 )
 
 const defaultPort = "8000"
@@ -44,6 +45,6 @@ func main() {
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	logging.Log.WithFields(logging.StandardFields).Info("connect to http://localhost:%s/ for GraphQL playground", port)
+	logging.Log.WithFields(logging.StandardFields).Fatal(http.ListenAndServe(":"+port, router))
 }
