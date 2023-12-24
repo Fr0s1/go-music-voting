@@ -122,7 +122,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 	pollId := in.PollId
 
 	fmt.Println("GetPollDetails: Reach here")
-	rows, err := database.Db.Query("SELECT p.Name, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p LEFT JOIN Poll_Album pa on p.ID = pa.PollID LEFT JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
+	rows, err := database.Db.Query("SELECT p.Name as PollName, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p LEFT JOIN Poll_Album pa on p.ID = pa.PollID LEFT JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
 
 	// Keep track
 	totalAlbum := 0
@@ -139,7 +139,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 	albumVotesChan := make(chan map[model.Album][]*pb.Vote)
 
-	// wg := sync.WaitGroup{}
+	wg := sync.WaitGroup{}
 
 	for rows.Next() {
 		var album model.Album
@@ -147,28 +147,34 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		if err := rows.Scan(&pollName, &creatorId, &album.Id, &album.Artist, &album.Name); err != nil {
 			fmt.Println(err.Error())
 		}
+
 		fmt.Println("GetPollDetails: Reach here 3")
 		fmt.Println("Album value: %v", album)
 
-		// wg.Add(1)
-		ctx, cancelFunc := context.WithTimeoutCause(ctx, time.Second*2, errors.New("query db takes too long"))
+		wg.Add(1)
+		ctx, cancelFunc := context.WithTimeoutCause(ctx, time.Second*1, errors.New("query db takes too long"))
 		defer cancelFunc()
 
-		go func(pollId int64, albumId int64, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context) {
+		go func(pollId int64, album model.Album, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context, wg *sync.WaitGroup) {
+			defer wg.Done()
+
+			time.Sleep(time.Second * 2)
+
 			select {
 			case <-ctx.Done():
 				fmt.Println("Error when querying database: ", ctx.Err())
-
 				return
 			default:
 				fmt.Println("GetPollDetails Routine: Reach here 1")
-				rows_routine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, albumId)
+				rows_routine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, album.Id)
 				defer rows_routine.Close()
 				fmt.Println("GetPollDetails Routine: Reach here 2")
 
 				var vote pb.Vote
 
 				albumVotesMap := make(map[model.Album][]*pb.Vote)
+
+				albumVotesMap[album] = []*pb.Vote{}
 
 				for rows_routine.Next() {
 					fmt.Println("GetPollDetails Routine: Reach here 3")
@@ -185,13 +191,11 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 				albumVotesChan <- albumVotesMap
 				fmt.Println("GetPollDetails Routine: Reach here 6")
 			}
-			// defer wg.Done()
 
-		}(pollId, album.Id, albumVotesChan, ctx)
+		}(pollId, album, albumVotesChan, ctx, &wg)
 	}
 	fmt.Println("GetPollDetails: Reach here 4")
 	// wg.Wait()
-	// fmt.Println("GetPollDetails: Reach here 5")
 	// close(albumVotesChan)
 	// fmt.Println("GetPollDetails: Reach here 6")
 
@@ -204,14 +208,24 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 	var albumsVotesInPoll []*pb.PollDetails_AlbumVote
 
 	fmt.Println("GetPollDetails: Reach here 7")
+	fmt.Println("Total album: ", totalAlbum)
+
+	go func() {
+		wg.Wait()
+		fmt.Println("GetPollDetails: Reach here 5")
+		close(albumVotesChan)
+	}()
 
 	for i := 0; i < totalAlbum; i++ {
 		albumVotes := <-albumVotesChan
 		fmt.Println("GetPollDetails: Reach here 8")
+		fmt.Println("Album votes: %v", albumVotes)
 
 		pollAlbumVotes := &pb.PollDetails_AlbumVote{}
 
 		for album, votes := range albumVotes {
+			fmt.Println("Album value: %v", album)
+
 			pollAlbumVotes.Album = &pb.Album{
 				Id:     album.Id,
 				Name:   album.Name,
@@ -221,7 +235,9 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 			pollAlbumVotes.Votes = votes
 		}
 
-		albumsVotesInPoll = append(albumsVotesInPoll, pollAlbumVotes)
+		if pollAlbumVotes.Album != nil {
+			albumsVotesInPoll = append(albumsVotesInPoll, pollAlbumVotes)
+		}
 	}
 
 	poll.AlbumVotes = albumsVotesInPoll

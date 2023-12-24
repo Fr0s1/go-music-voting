@@ -17,6 +17,8 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	database "user-grpc/pkg/db/mysql"
+
+	logging "user-grpc/pkg/logging"
 )
 
 var (
@@ -60,15 +62,22 @@ func (s *UserCredentialsServer) GetUserDetails(ctx context.Context, in *pb.UserQ
 	return &pb.User{Id: user_id, Username: username}, nil
 }
 
+func unaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	logging.Log.WithFields(logging.StandardFields).Info("--> unary interceptor: ", info.FullMethod)
+	return handler(ctx, req)
+}
+
 func main() {
 	flag.Parse()
+
+	logger := logging.Log.WithFields(logging.StandardFields)
 
 	// cert, err := tls.LoadX509KeyPair(data.Path("./pkg/tls/server-cert.pem"), data.Path("./pkg/tls/server-cert.key"))
 	currentWorkDir, _ := os.Getwd()
 	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/server-cert.pem"), filepath.Join(currentWorkDir, "./pkg/tls/server-key.pem"))
 
 	if err != nil {
-		log.Fatalf("failed to load key pair: %s", err)
+		logger.Fatal("failed to load key pair: %s", err)
 	}
 
 	ca := x509.NewCertPool()
@@ -76,11 +85,11 @@ func main() {
 	caBytes, err := os.ReadFile(caFilePath)
 
 	if err != nil {
-		log.Fatalf("failed to read ca cert %q: %v", caFilePath, err)
+		logger.Fatal("failed to read ca cert %q: %v", caFilePath, err)
 	}
 
 	if ok := ca.AppendCertsFromPEM(caBytes); !ok {
-		log.Fatalf("failed to parse %q", &caFilePath)
+		logger.Fatal("failed to parse ", &caFilePath)
 	}
 
 	tlsConfig := &tls.Config{
@@ -89,8 +98,10 @@ func main() {
 		ClientCAs:    ca,
 	}
 
-	grpcServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
-
+	grpcServer := grpc.NewServer(
+		grpc.Creds(credentials.NewTLS(tlsConfig)),
+		grpc.UnaryInterceptor(unaryInterceptor),
+	)
 	s := &UserCredentialsServer{}
 
 	pb.RegisterUserCredentialsServer(grpcServer, s)
@@ -98,7 +109,7 @@ func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost: %d", *port))
 
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Fatal("failed to listen: ", err)
 	}
 
 	database.InitDB()

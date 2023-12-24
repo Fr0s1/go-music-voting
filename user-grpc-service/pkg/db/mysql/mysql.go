@@ -2,28 +2,31 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
 
 	_ "github.com/go-sql-driver/mysql"
+
+	logging "user-grpc/pkg/logging"
 )
 
-var Db *sql.DB
+var (
+	Db     *sql.DB
+	logger = logging.Log.WithFields(logging.StandardFields)
+)
 
 func InitDB() {
 	db, err := sql.Open("mysql", "root:hieu2203@tcp(localhost)/musicvoting")
 
 	if err != nil {
-		log.Panic(err)
+		logger.Error(err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Panic(err)
+		logger.Panic(err)
 	}
 
 	Db = db
 
-	fmt.Println("Connected")
+	logger.Info("Connected to database")
 }
 
 func CloseDB() error {

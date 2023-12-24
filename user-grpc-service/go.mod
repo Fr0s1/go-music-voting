@@ -5,8 +5,8 @@ go 1.21.3
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/grpc v1.60.1
-	google.golang.org/grpc/examples v0.0.0-20231221225426-4f03f3ff32c9
 	google.golang.org/protobuf v1.31.0
 )
 
