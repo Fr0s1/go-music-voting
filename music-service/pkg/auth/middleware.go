@@ -37,7 +37,7 @@ func Middleware() func(http.Handler) http.Handler {
 			tokenStr := header
 
 			grpc_user, err := grpc_client.GrpcClient.GetUser(grpc_ctx, &pb.UserJWTToken{Token: tokenStr})
-
+			fmt.Printf("gRPC User response: %v\n", grpc_user)
 			fmt.Println("Reach middleware here 3")
 			user := users.User{Id: strconv.Itoa(int(grpc_user.Id)), Username: grpc_user.Username}
 

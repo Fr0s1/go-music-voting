@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	pb "voting-grpc/pkg/grpc"
+	pb "music-service/pkg/grpc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -27,7 +27,7 @@ func InitConnection() {
 	flag.Parse()
 	currentWorkDir, _ := os.Getwd()
 
-	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-cert.pem"), filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-key.pem"))
+	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/music-service-cert.pem"), filepath.Join(currentWorkDir, "pkg/tls/music-service-key.pem"))
 
 	if err != nil {
 		log.Fatalf("failed to load client cert: %v", err)

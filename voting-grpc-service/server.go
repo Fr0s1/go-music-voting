@@ -122,7 +122,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 	pollId := in.PollId
 
 	fmt.Println("GetPollDetails: Reach here")
-	rows, err := database.Db.Query("SELECT p.Name, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p JOIN Poll_Album pa on p.ID = pa.PollID JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
+	rows, err := database.Db.Query("SELECT p.Name, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p LEFT JOIN Poll_Album pa on p.ID = pa.PollID LEFT JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
 
 	// Keep track
 	totalAlbum := 0
