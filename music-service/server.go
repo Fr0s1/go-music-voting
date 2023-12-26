@@ -33,6 +33,7 @@ func main() {
 	router.Use(auth.Middleware())
 
 	grpc_client.InitConnection()
+	grpc_client.InitVotingConnection()
 
 	database.InitDB()
 

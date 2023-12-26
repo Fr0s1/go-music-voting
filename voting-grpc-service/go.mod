@@ -4,6 +4,7 @@ go 1.21.1
 
 require (
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/sirupsen/logrus v1.9.3
 	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.31.0
 )

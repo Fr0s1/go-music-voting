@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	port = flag.Int("port", 443, "The server port")
+	port = flag.Int("port", 50051, "The server port")
 )
 
 type UserCredentialsServer struct {

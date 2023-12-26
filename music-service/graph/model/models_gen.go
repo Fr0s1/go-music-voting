@@ -23,7 +23,29 @@ type NewAlbum struct {
 	Year   int    `json:"year"`
 }
 
+type NewPoll struct {
+	Name   string      `json:"name"`
+	Albums []*NewAlbum `json:"albums"`
+}
+
+type Poll struct {
+	ID         string       `json:"id"`
+	Name       string       `json:"name"`
+	AlbumVotes []*PollAlbum `json:"albumVotes"`
+}
+
+type PollAlbum struct {
+	Poll  *Poll   `json:"poll"`
+	Votes []*Vote `json:"votes"`
+}
+
 type User struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
+}
+
+type Vote struct {
+	Poll  *Poll  `json:"poll"`
+	Album *Album `json:"album"`
+	User  *User  `json:"user"`
 }

@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "localhost:443", "the address to connect to")
+	userGRPCAddr = flag.String("useraddr", "localhost:50051", "the address to connect to")
 )
 
 var GrpcConnection any
@@ -50,10 +50,10 @@ func InitConnection() {
 		RootCAs:      ca,
 	}
 
-	fmt.Println("Start connecting to user gRPC service addr ", *addr)
+	fmt.Println("Start connecting to user gRPC service addr ", *userGRPCAddr)
 
 	// Set up connection to gRPC user credential service
-	conn, conn_err := grpc.Dial(*addr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	conn, conn_err := grpc.Dial(*userGRPCAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 
 	fmt.Printf("Error: %v\n", conn_err)
 	GrpcConnection = conn

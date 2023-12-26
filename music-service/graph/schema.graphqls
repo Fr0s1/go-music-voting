@@ -10,7 +10,24 @@ type Album {
 type User {
   id: ID!
   username: String!
-} 
+}
+
+type Vote {
+  poll: Poll!
+  album: Album!
+  user: User!
+}
+
+type PollAlbum {
+  poll: Poll!
+  votes: [Vote!]!
+}
+
+type Poll {
+  id: ID!
+  name: String!
+  albumVotes: [PollAlbum!]!
+}
 
 input NewAlbum {
   name: String!
@@ -24,6 +41,11 @@ input AlbumSearch {
   artist: String!
 }
 
+input NewPoll {
+  name: String!
+  albums: [NewAlbum!]!
+}
+
 type Query {
   getAlbum(input: AlbumSearch!): [Album!]!
   getAllAlbums: [Album!]!
@@ -31,4 +53,5 @@ type Query {
 
 type Mutation {
   uploadAlbum(input: NewAlbum!): Album!
+  createPoll(input: NewPoll!): Poll!
 }

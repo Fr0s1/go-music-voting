@@ -9,25 +9,25 @@ import (
 	"os"
 	"path/filepath"
 
-	pb "voting-grpc/pkg/grpc"
+	pb "music-service/pkg/grpc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
 var (
-	addr = flag.String("addr", "localhost:50051", "the address to connect to")
+	votingGRPCAddr = flag.String("votingaddr", "localhost:50052", "the address to connect to")
 )
 
-var GrpcConnection any
+var VotingGRPCConnection any
 
-var GrpcClient pb.UserCredentialsClient
+var VotingGRPCClient pb.VotingClient
 
-func InitConnection() {
+func InitVotingConnection() {
 	flag.Parse()
 	currentWorkDir, _ := os.Getwd()
 
-	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-cert.pem"), filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-key.pem"))
+	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/music-service-cert.pem"), filepath.Join(currentWorkDir, "pkg/tls/music-service-key.pem"))
 
 	if err != nil {
 		log.Fatalf("failed to load client cert: %v", err)
@@ -45,26 +45,26 @@ func InitConnection() {
 	}
 
 	tlsConfig := &tls.Config{
-		ServerName:   "user.grpc.cloudfrosted.com",
+		ServerName:   "voting.grpc.cloudfrosted.com",
 		Certificates: []tls.Certificate{cert},
 		RootCAs:      ca,
 	}
 
-	fmt.Println("Start connecting to user gRPC service addr ", *addr)
+	fmt.Println("Start connecting to voting gRPC service addr ", *votingGRPCAddr)
 
-	// Set up connection to gRPC user credential service
-	conn, conn_err := grpc.Dial(*addr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	// Set up connection to gRPC voting credential service
+	conn, conn_err := grpc.Dial(*votingGRPCAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 
 	fmt.Printf("Error: %v\n", conn_err)
-	GrpcConnection = conn
+	VotingGRPCConnection = conn
 
-	c := pb.NewUserCredentialsClient(conn)
+	c := pb.NewVotingClient(conn)
 
 	if conn_err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 
-	GrpcClient = c
+	VotingGRPCClient = c
 }
 
 // func CloseConnection() {

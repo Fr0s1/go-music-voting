@@ -2,12 +2,16 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -20,6 +24,10 @@ import (
 	grpc_user_client "voting-grpc/pkg/grpc/clients/user-service"
 
 	model "voting-grpc/pkg/db/models"
+
+	logging "voting-grpc/pkg/logging"
+
+	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -158,7 +166,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		go func(pollId int64, album model.Album, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context, wg *sync.WaitGroup) {
 			defer wg.Done()
 
-			time.Sleep(time.Second * 2)
+			// time.Sleep(time.Second * 2)
 
 			select {
 			case <-ctx.Done():
@@ -247,6 +255,36 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 func main() {
 	flag.Parse()
+
+	logger := logging.Log.WithFields(logging.StandardFields)
+
+	currentWorkDir, _ := os.Getwd()
+	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-cert.pem"), filepath.Join(currentWorkDir, "./pkg/tls/voting-grpc-key.pem"))
+
+	if err != nil {
+		logger.Fatal("failed to load key pair: %s", err)
+	}
+
+	ca := x509.NewCertPool()
+	caFilePath := filepath.Join(currentWorkDir, "./pkg/tls/ca-cert.pem")
+	caBytes, err := os.ReadFile(caFilePath)
+
+	if err != nil {
+		logger.Fatal("failed to read ca cert %q: %v", caFilePath, err)
+	}
+
+	if ok := ca.AppendCertsFromPEM(caBytes); !ok {
+		logger.Fatal("failed to parse ", &caFilePath)
+	}
+
+	tlsConfig := &tls.Config{
+		ClientAuth:   tls.NoClientCert,
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    ca,
+	}
+
+	grpcServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
+
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost: %d", *port))
 
 	if err != nil {
@@ -258,8 +296,6 @@ func main() {
 	defer database.CloseDB()
 
 	grpc_user_client.InitConnection()
-
-	grpcServer := grpc.NewServer()
 
 	s := &VotingServer{}
 
