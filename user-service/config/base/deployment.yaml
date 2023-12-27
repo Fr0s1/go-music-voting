@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-user-http
+spec:
+  selector:
+    matchLabels:
+      app: go-user-http
+  template:
+    metadata:
+      labels:
+        app: go-user-http
+    spec:
+      containers:
+        - name: user-http
+          image: frost2203/go-user-service:local
+          ports:
+            - containerPort: 8080

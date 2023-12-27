@@ -125,7 +125,9 @@ func (s *VotingServer) VoteAlbum(ctx context.Context, in *pb.Vote) (*pb.Vote, er
 	_, err := model.VotePollAlbum(in.PollId, in.AlbumId, in.UserId)
 
 	if err != nil {
-		log.Fatal(err)
+		logging.Log.Error(err)
+
+		return &pb.Vote{}, nil
 	}
 
 	return in, nil
@@ -134,18 +136,18 @@ func (s *VotingServer) VoteAlbum(ctx context.Context, in *pb.Vote) (*pb.Vote, er
 func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*pb.PollDetails, error) {
 	pollId := in.PollId
 
-	fmt.Println("GetPollDetails: Reach here")
+	logging.Log.Info("GetPollDetails: Reach here")
 	rows, err := database.Db.Query("SELECT p.Name as PollName, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p LEFT JOIN Poll_Album pa on p.ID = pa.PollID LEFT JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
 
 	// Keep track
 	totalAlbum := 0
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logging.Log.Error(err)
 	}
 
 	defer rows.Close()
-	fmt.Println("GetPollDetails: Reach here 2")
+	logging.Log.Info("GetPollDetails: Reach here 2")
 
 	var pollName string
 	var creatorId int32
@@ -158,11 +160,11 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		var album model.Album
 
 		if err := rows.Scan(&pollName, &creatorId, &album.Id, &album.Artist, &album.Name); err != nil {
-			fmt.Println(err.Error())
+			logging.Log.Error(err)
 		}
 
-		fmt.Println("GetPollDetails: Reach here 3")
-		fmt.Println("Album value: %v", album)
+		logging.Log.Info("GetPollDetails: Reach here 3")
+		logging.Log.Info("Album value: %v", album)
 
 		wg.Add(1)
 		ctx, cancelFunc := context.WithTimeoutCause(ctx, time.Second*1, errors.New("query db takes too long"))
@@ -171,20 +173,20 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		go func(pollId int64, album model.Album, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context, wg *sync.WaitGroup) {
 			defer wg.Done()
 
-			// time.Sleep(time.Second * 2)
+			time.Sleep(time.Second * 2)
 			s.mu.Lock()
 			totalAlbum += 1
 			s.mu.Unlock()
 
 			select {
 			case <-ctx.Done():
-				fmt.Println("Error when querying database: ", ctx.Err())
+				logging.Log.Info("Error when querying database: ", ctx.Err())
 				return
 			default:
-				fmt.Println("GetPollDetails Routine: Reach here 1")
-				rows_routine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, album.Id)
-				defer rows_routine.Close()
-				fmt.Println("GetPollDetails Routine: Reach here 2")
+				logging.Log.Info("GetPollDetails Routine: Reach here 1")
+				rowsRoutine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, album.Id)
+				defer rowsRoutine.Close()
+				logging.Log.Info("GetPollDetails Routine: Reach here 2")
 
 				var vote pb.Vote
 
@@ -192,28 +194,30 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 				albumVotesMap[album] = []*pb.Vote{}
 
-				for rows_routine.Next() {
-					fmt.Println("GetPollDetails Routine: Reach here 3")
-					if err := rows_routine.Scan(&vote.UserId, &vote.PollId, &vote.AlbumId); err != nil {
-						fmt.Println(err.Error())
+				for rowsRoutine.Next() {
+					logging.Log.Info("GetPollDetails Routine: Reach here 3")
+					if err := rowsRoutine.Scan(&vote.UserId, &vote.PollId, &vote.AlbumId); err != nil {
+						logging.Log.Error(err)
+
+						continue
 					}
-					fmt.Println("GetPollDetails Routine: Reach here 4")
+					logging.Log.Info("GetPollDetails Routine: Reach here 4")
 
 					fmt.Printf("Value: %+v\n", vote)
 
 					albumVotesMap[album] = append(albumVotesMap[album], &vote)
 				}
-				fmt.Println("GetPollDetails Routine: Reach here 5")
+				logging.Log.Info("GetPollDetails Routine: Reach here 5")
 				albumVotesChan <- albumVotesMap
-				fmt.Println("GetPollDetails Routine: Reach here 6")
+				logging.Log.Info("GetPollDetails Routine: Reach here 6")
 			}
 
 		}(pollId, album, albumVotesChan, ctx, &wg)
 	}
-	fmt.Println("GetPollDetails: Reach here 4")
+	logging.Log.Info("GetPollDetails: Reach here 4")
 	// wg.Wait()
 	// close(albumVotesChan)
-	// fmt.Println("GetPollDetails: Reach here 6")
+	// logging.Log.Info("GetPollDetails: Reach here 6")
 
 	poll := &pb.PollDetails{}
 
@@ -223,24 +227,24 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 	var albumsVotesInPoll []*pb.PollDetails_AlbumVote
 
-	fmt.Println("GetPollDetails: Reach here 7")
-	fmt.Println("Total album: ", totalAlbum)
+	logging.Log.Info("GetPollDetails: Reach here 7")
+	logging.Log.Info("Total album: ", totalAlbum)
 
 	go func() {
 		wg.Wait()
-		fmt.Println("GetPollDetails: Reach here 5")
+		logging.Log.Info("GetPollDetails: Reach here 5")
 		close(albumVotesChan)
 	}()
 
 	for i := 0; i < totalAlbum; i++ {
 		albumVotes := <-albumVotesChan
-		fmt.Println("GetPollDetails: Reach here 8")
-		fmt.Println("Album votes: %v", albumVotes)
+		logging.Log.Info("GetPollDetails: Reach here 8")
+		logging.Log.Info("Album votes: %v", albumVotes)
 
 		pollAlbumVotes := &pb.PollDetails_AlbumVote{}
 
 		for album, votes := range albumVotes {
-			fmt.Println("Album value: %v", album)
+			logging.Log.Info("Album value: %v", album)
 
 			pollAlbumVotes.Album = &pb.Album{
 				Id:     album.Id,

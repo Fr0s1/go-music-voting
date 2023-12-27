@@ -4,14 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 )
 
 var Db *sql.DB
 
 func InitDB() {
-	db, err := sql.Open("mysql", "root:hieu2203@tcp(localhost)/musicvoting")
+	dbHost := os.Getenv("DBHOST")
+
+	cfg := mysql.Config{
+		User:   os.Getenv("DBUSER"),
+		Passwd: os.Getenv("DBPASS"),
+		Net:    "tcp",
+		Addr:   fmt.Sprintf("%s:3306", dbHost),
+		DBName: "musicvoting",
+	}
+
+	db, err := sql.Open("mysql", cfg.FormatDSN())
 
 	if err != nil {
 		log.Panic(err)

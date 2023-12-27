@@ -3,9 +3,9 @@ package models
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"log"
 	database "voting-grpc/pkg/db/mysql"
+
+	logging "voting-grpc/pkg/logging"
 )
 
 type User struct {
@@ -29,7 +29,9 @@ func (poll *Poll) Save() int64 {
 	stmt, err := database.Db.Prepare("INSERT INTO Polls(Name, CreatorID) VALUES (?,?)")
 
 	if err != nil {
-		log.Fatal(err)
+		logging.Log.Error(err)
+
+		return 0
 	}
 
 	defer stmt.Close()
@@ -37,7 +39,9 @@ func (poll *Poll) Save() int64 {
 	res, err := stmt.Exec(poll.Name, poll.Creator.Id)
 
 	if err != nil {
-		log.Fatal(err)
+		logging.Log.Error(err)
+
+		return 0
 	}
 
 	id, _ := res.LastInsertId()
@@ -49,7 +53,9 @@ func AddAlbumPoll(albumId int64, pollId int64) int64 {
 	stmt, err := database.Db.Prepare("INSERT INTO Poll_Album(AlbumID, PollID) VALUES (?,?)")
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logging.Log.Error(err)
+
+		return 0
 	}
 
 	defer stmt.Close()
@@ -57,7 +63,9 @@ func AddAlbumPoll(albumId int64, pollId int64) int64 {
 	res, err := stmt.Exec(albumId, pollId)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logging.Log.Error(err)
+
+		return 0
 	}
 
 	id, _ := res.LastInsertId()
@@ -69,7 +77,9 @@ func GetAlbumDetails(albumId int64) Album {
 	stmt, err := database.Db.Prepare("SELECT Id, Name, Artist FROM Albums WHERE ID = (?)")
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logging.Log.Error(err)
+
+		return Album{}
 	}
 
 	defer stmt.Close()
@@ -82,7 +92,7 @@ func GetAlbumDetails(albumId int64) Album {
 
 	if err != nil {
 		if errors.As(err, &sql.ErrNoRows) {
-			fmt.Errorf("No albums exist with ID %d", albumId)
+			logging.Log.Error("No albums exist with ID", albumId)
 		}
 	}
 
@@ -93,7 +103,9 @@ func VotePollAlbum(pollId int64, albumId int64, voterId int32) (int64, error) {
 	stmt, err := database.Db.Prepare("INSERT INTO Votes(AlbumID, PollID, VoterID) VALUES(?,?,?)")
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logging.Log.Error(err)
+
+		return 0, err
 	}
 
 	defer stmt.Close()
@@ -101,7 +113,9 @@ func VotePollAlbum(pollId int64, albumId int64, voterId int32) (int64, error) {
 	res, err := stmt.Exec(albumId, pollId, voterId)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		logging.Log.Error(err)
+
+		return 0, err
 	}
 
 	id, err := res.LastInsertId()

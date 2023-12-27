@@ -52,7 +52,7 @@ func InitVotingConnection() {
 
 	fmt.Println("Start connecting to voting gRPC service addr ", *votingGRPCAddr)
 
-	// Set up connection to gRPC voting credential service
+	// Set up connection to gRPC voting service
 	conn, conn_err := grpc.Dial(*votingGRPCAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 
 	fmt.Printf("Error: %v\n", conn_err)
