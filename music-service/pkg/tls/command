@@ -13,4 +13,4 @@ openssl req -newkey rsa:4096 -nodes -keyout music-service-key.pem -out music-ser
 openssl x509 -req -in music-service-req.pem -days 730 -CA ca-cert.pem -CAkey ca-key.pem -CAcreateserial -out music-service-cert.pem -extensions SAN -extfile music-graphql-client-ext.cnf
 
 echo "Server's signed certificate"
-openssl x509 -in server-cert.pem -noout -text
+openssl x509 -in music-service-cert.pem -noout -text

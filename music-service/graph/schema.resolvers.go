@@ -101,11 +101,10 @@ func (r *mutationResolver) CreatePoll(ctx context.Context, input model.NewPoll) 
 					return
 				}
 
-				log.Printf("Current added albums: %v", in)
+				log.Printf("Current added albums: %v\n", in)
 
 				grpcCurrentPollAlbums = append(grpcCurrentPollAlbums, in)
 			}
-
 		}()
 
 		for _, album := range albumsList {
@@ -120,9 +119,13 @@ func (r *mutationResolver) CreatePoll(ctx context.Context, input model.NewPoll) 
 				},
 			}
 
+			fmt.Printf("CreatePoll GraphQL: graphqlAlbum: %v\n", graphqlAlbum)
+
 			albumId := graphqlAlbum.Save()
 
-			if albumId != 0 {
+			fmt.Printf("CreatePoll GraphQL: added Album ID: %v\n", graphqlAlbum)
+
+			if albumId > 0 {
 				newProtoBufAlbum := &pb.NewPollAlbum{
 					PollId:  grpcPoll.Id,
 					AlbumId: albumId,

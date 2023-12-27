@@ -77,6 +77,11 @@ func (s *VotingServer) AddPollAlbums(stream pb.Voting_AddPollAlbumsServer) error
 	for {
 		pollAlbum, err := stream.Recv()
 
+		logging.Log.Info("AddPollAlbums gRPC Server: received albums from server", pollAlbum)
+
+		if pollAlbum == nil {
+			return nil
+		}
 		pollId := pollAlbum.PollId
 		albumId := pollAlbum.AlbumId
 
@@ -151,7 +156,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 	for rows.Next() {
 		var album model.Album
-		totalAlbum += 1
+
 		if err := rows.Scan(&pollName, &creatorId, &album.Id, &album.Artist, &album.Name); err != nil {
 			fmt.Println(err.Error())
 		}
@@ -167,6 +172,9 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 			defer wg.Done()
 
 			// time.Sleep(time.Second * 2)
+			s.mu.Lock()
+			totalAlbum += 1
+			s.mu.Unlock()
 
 			select {
 			case <-ctx.Done():
