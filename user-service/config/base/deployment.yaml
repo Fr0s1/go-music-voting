@@ -16,3 +16,22 @@ spec:
           image: frost2203/go-user-service:local
           ports:
             - containerPort: 8080
+          env:
+            - name: DBHOST
+              value:
+                valueFrom:
+                  secretKeyRef:
+                    name: db-connection
+                    key: host
+            - name: DBUSER
+              value:
+                valueFrom:
+                  secretKeyRef:
+                    name: db-connection
+                    key: user
+            - name: DBPASS
+              value:
+                valueFrom:
+                  secretKeyRef:
+                    name: db-connection
+                    key: password
