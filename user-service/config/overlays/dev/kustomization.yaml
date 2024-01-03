@@ -36,3 +36,56 @@ patches:
                   requests:
                     cpu: "100" # Lower CPU request to 100m (0.1 CPU cores)
                     memory: "128Mi"
+                env:
+                - name: DBHOST
+                  value:
+                    valueFrom:
+                      secretKeyRef:
+                        name: db-connection
+                        key: host
+                - name: DBUSER
+                  value:
+                    valueFrom:
+                      secretKeyRef:
+                        name: db-connection
+                        key: user
+                - name: DBPASS
+                  value:
+                    valueFrom:
+                      secretKeyRef:
+                        name: db-connection
+                        key: password
+                        
+configMapGenerator:
+  - name: test-configmap
+    literals:
+      - firstname=trong
+      - lastname=hieu
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: test-configmap    
+      fieldPath: data.firstname  
+    targets:
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - metadata.annotations.creator
+        options:
+          delimiter: '.'
+          index: 0
+          create: true
+  - source:
+      kind: ConfigMap
+      name: test-configmap
+      fieldPath: data.lastname  
+    targets:
+      - select:
+          kind: Deployment
+        fieldPaths:
+          - metadata.annotations.creator
+        options:
+          delimiter: '.'
+          index: 1
+          create: true

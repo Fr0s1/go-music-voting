@@ -173,7 +173,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		go func(pollId int64, album model.Album, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context, wg *sync.WaitGroup) {
 			defer wg.Done()
 
-			time.Sleep(time.Second * 2)
+			// time.Sleep(time.Second * 2)
 			s.mu.Lock()
 			totalAlbum += 1
 			s.mu.Unlock()
@@ -184,7 +184,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 				return
 			default:
 				logging.Log.Info("GetPollDetails Routine: Reach here 1")
-				rowsRoutine, _ := database.Db.Query("SELECT AlbumID, PollID, VoterID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, album.Id)
+				rowsRoutine, _ := database.Db.Query("SELECT VoterID, PollID, AlbumID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, album.Id)
 				defer rowsRoutine.Close()
 				logging.Log.Info("GetPollDetails Routine: Reach here 2")
 

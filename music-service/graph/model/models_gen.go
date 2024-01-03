@@ -28,6 +28,11 @@ type NewPoll struct {
 	Albums []*NewAlbum `json:"albums"`
 }
 
+type NewVote struct {
+	PollID  string `json:"pollId"`
+	AlbumID string `json:"albumId"`
+}
+
 type Poll struct {
 	ID         string       `json:"id"`
 	Name       string       `json:"name"`
@@ -45,7 +50,6 @@ type User struct {
 }
 
 type Vote struct {
-	Poll  *Poll  `json:"poll"`
-	Album *Album `json:"album"`
-	User  *User  `json:"user"`
+	PollID  string `json:"pollId"`
+	AlbumID string `json:"albumId"`
 }

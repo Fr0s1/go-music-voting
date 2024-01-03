@@ -59,6 +59,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreatePoll  func(childComplexity int, input model.NewPoll) int
 		UploadAlbum func(childComplexity int, input model.NewAlbum) int
+		VoteAlbum   func(childComplexity int, input model.NewVote) int
 	}
 
 	Poll struct {
@@ -83,15 +84,15 @@ type ComplexityRoot struct {
 	}
 
 	Vote struct {
-		Album func(childComplexity int) int
-		Poll  func(childComplexity int) int
-		User  func(childComplexity int) int
+		AlbumID func(childComplexity int) int
+		PollID  func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
 	UploadAlbum(ctx context.Context, input model.NewAlbum) (*model.Album, error)
 	CreatePoll(ctx context.Context, input model.NewPoll) (*model.Poll, error)
+	VoteAlbum(ctx context.Context, input model.NewVote) (*model.Vote, error)
 }
 type QueryResolver interface {
 	GetAlbum(ctx context.Context, input model.AlbumSearch) ([]*model.Album, error)
@@ -183,6 +184,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UploadAlbum(childComplexity, args["input"].(model.NewAlbum)), true
 
+	case "Mutation.voteAlbum":
+		if e.complexity.Mutation.VoteAlbum == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_voteAlbum_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.VoteAlbum(childComplexity, args["input"].(model.NewVote)), true
+
 	case "Poll.albumVotes":
 		if e.complexity.Poll.AlbumVotes == nil {
 			break
@@ -251,26 +264,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Username(childComplexity), true
 
-	case "Vote.album":
-		if e.complexity.Vote.Album == nil {
+	case "Vote.albumId":
+		if e.complexity.Vote.AlbumID == nil {
 			break
 		}
 
-		return e.complexity.Vote.Album(childComplexity), true
+		return e.complexity.Vote.AlbumID(childComplexity), true
 
-	case "Vote.poll":
-		if e.complexity.Vote.Poll == nil {
+	case "Vote.pollId":
+		if e.complexity.Vote.PollID == nil {
 			break
 		}
 
-		return e.complexity.Vote.Poll(childComplexity), true
-
-	case "Vote.user":
-		if e.complexity.Vote.User == nil {
-			break
-		}
-
-		return e.complexity.Vote.User(childComplexity), true
+		return e.complexity.Vote.PollID(childComplexity), true
 
 	}
 	return 0, false
@@ -283,6 +289,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAlbumSearch,
 		ec.unmarshalInputNewAlbum,
 		ec.unmarshalInputNewPoll,
+		ec.unmarshalInputNewVote,
 	)
 	first := true
 
@@ -421,6 +428,21 @@ func (ec *executionContext) field_Mutation_uploadAlbum_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewAlbum2musicᚑserviceᚋgraphᚋmodelᚐNewAlbum(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_voteAlbum_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewVote
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewVote2musicᚑserviceᚋgraphᚋmodelᚐNewVote(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -899,6 +921,67 @@ func (ec *executionContext) fieldContext_Mutation_createPoll(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_voteAlbum(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_voteAlbum(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().VoteAlbum(rctx, fc.Args["input"].(model.NewVote))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Vote)
+	fc.Result = res
+	return ec.marshalNVote2ᚖmusicᚑserviceᚋgraphᚋmodelᚐVote(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_voteAlbum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pollId":
+				return ec.fieldContext_Vote_pollId(ctx, field)
+			case "albumId":
+				return ec.fieldContext_Vote_albumId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Vote", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_voteAlbum_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Poll_id(ctx context.Context, field graphql.CollectedField, obj *model.Poll) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Poll_id(ctx, field)
 	if err != nil {
@@ -1128,12 +1211,10 @@ func (ec *executionContext) fieldContext_PollAlbum_votes(ctx context.Context, fi
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "poll":
-				return ec.fieldContext_Vote_poll(ctx, field)
-			case "album":
-				return ec.fieldContext_Vote_album(ctx, field)
-			case "user":
-				return ec.fieldContext_Vote_user(ctx, field)
+			case "pollId":
+				return ec.fieldContext_Vote_pollId(ctx, field)
+			case "albumId":
+				return ec.fieldContext_Vote_albumId(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vote", field.Name)
 		},
@@ -1485,8 +1566,8 @@ func (ec *executionContext) fieldContext_User_username(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Vote_poll(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Vote_poll(ctx, field)
+func (ec *executionContext) _Vote_pollId(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vote_pollId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1499,7 +1580,7 @@ func (ec *executionContext) _Vote_poll(ctx context.Context, field graphql.Collec
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Poll, nil
+		return obj.PollID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1511,34 +1592,26 @@ func (ec *executionContext) _Vote_poll(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Poll)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNPoll2ᚖmusicᚑserviceᚋgraphᚋmodelᚐPoll(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Vote_poll(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Vote_pollId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Vote",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Poll_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Poll_name(ctx, field)
-			case "albumVotes":
-				return ec.fieldContext_Poll_albumVotes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Poll", field.Name)
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Vote_album(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Vote_album(ctx, field)
+func (ec *executionContext) _Vote_albumId(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vote_albumId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1551,7 +1624,7 @@ func (ec *executionContext) _Vote_album(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Album, nil
+		return obj.AlbumID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1563,83 +1636,19 @@ func (ec *executionContext) _Vote_album(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Album)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNAlbum2ᚖmusicᚑserviceᚋgraphᚋmodelᚐAlbum(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Vote_album(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Vote_albumId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Vote",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Album_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Album_name(ctx, field)
-			case "year":
-				return ec.fieldContext_Album_year(ctx, field)
-			case "artist":
-				return ec.fieldContext_Album_artist(ctx, field)
-			case "genre":
-				return ec.fieldContext_Album_genre(ctx, field)
-			case "uploader":
-				return ec.fieldContext_Album_uploader(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Album", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Vote_user(ctx context.Context, field graphql.CollectedField, obj *model.Vote) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Vote_user(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖmusicᚑserviceᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Vote_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Vote",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3534,6 +3543,40 @@ func (ec *executionContext) unmarshalInputNewPoll(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewVote(ctx context.Context, obj interface{}) (model.NewVote, error) {
+	var it model.NewVote
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"pollId", "albumId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "pollId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pollId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PollID = data
+		case "albumId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("albumId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AlbumID = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3635,6 +3678,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createPoll":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createPoll(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "voteAlbum":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_voteAlbum(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -3904,18 +3954,13 @@ func (ec *executionContext) _Vote(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Vote")
-		case "poll":
-			out.Values[i] = ec._Vote_poll(ctx, field, obj)
+		case "pollId":
+			out.Values[i] = ec._Vote_pollId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "album":
-			out.Values[i] = ec._Vote_album(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "user":
-			out.Values[i] = ec._Vote_user(ctx, field, obj)
+		case "albumId":
+			out.Values[i] = ec._Vote_albumId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4408,6 +4453,11 @@ func (ec *executionContext) unmarshalNNewPoll2musicᚑserviceᚋgraphᚋmodelᚐ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewVote2musicᚑserviceᚋgraphᚋmodelᚐNewVote(ctx context.Context, v interface{}) (model.NewVote, error) {
+	res, err := ec.unmarshalInputNewVote(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNPoll2musicᚑserviceᚋgraphᚋmodelᚐPoll(ctx context.Context, sel ast.SelectionSet, v model.Poll) graphql.Marshaler {
 	return ec._Poll(ctx, sel, &v)
 }
@@ -4499,6 +4549,10 @@ func (ec *executionContext) marshalNUser2ᚖmusicᚑserviceᚋgraphᚋmodelᚐUs
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNVote2musicᚑserviceᚋgraphᚋmodelᚐVote(ctx context.Context, sel ast.SelectionSet, v model.Vote) graphql.Marshaler {
+	return ec._Vote(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNVote2ᚕᚖmusicᚑserviceᚋgraphᚋmodelᚐVoteᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Vote) graphql.Marshaler {

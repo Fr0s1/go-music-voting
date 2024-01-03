@@ -13,14 +13,12 @@ import (
 	"music-service/graph/model"
 	"music-service/pkg/albums"
 	"music-service/pkg/auth"
+	pb "music-service/pkg/grpc"
+	grpc_client "music-service/pkg/grpc/client"
 	"music-service/pkg/logging"
 	"music-service/pkg/users"
 	"strconv"
 	"time"
-
-	grpc_client "music-service/pkg/grpc/client"
-
-	pb "music-service/pkg/grpc"
 )
 
 // UploadAlbum is the resolver for the uploadAlbum field.
@@ -58,6 +56,10 @@ func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum
 // CreatePoll is the resolver for the createPoll field.
 func (r *mutationResolver) CreatePoll(ctx context.Context, input model.NewPoll) (*model.Poll, error) {
 	user := auth.ForContext(ctx)
+
+	if user == nil {
+		return &model.Poll{}, fmt.Errorf("access denied")
+	}
 
 	userId, _ := strconv.ParseInt(user.Id, 10, 32)
 
@@ -149,6 +151,40 @@ func (r *mutationResolver) CreatePoll(ctx context.Context, input model.NewPoll) 
 		Name:       grpcNewPoll.Name,
 		AlbumVotes: []*model.PollAlbum{},
 	}, nil
+}
+
+// VoteAlbum is the resolver for the voteAlbum field.
+func (r *mutationResolver) VoteAlbum(ctx context.Context, input model.NewVote) (*model.Vote, error) {
+	user := auth.ForContext(ctx)
+
+	if user == nil {
+		return &model.Vote{}, fmt.Errorf("access denied")
+	}
+
+	pollId, _ := strconv.ParseInt(input.PollID, 10, 64)
+	albumId, _ := strconv.ParseInt(input.AlbumID, 10, 64)
+	userId, _ := strconv.ParseInt(user.Id, 10, 32)
+
+	newUserId := int32(userId)
+
+	pbVote := &pb.Vote{
+		PollId:  pollId,
+		AlbumId: albumId,
+		UserId:  newUserId,
+	}
+
+	_, err := grpc_client.VotingGRPCClient.VoteAlbum(ctx, pbVote)
+
+	if err != nil {
+		return &model.Vote{}, err
+	}
+
+	graphVote := &model.Vote{
+		PollID:  strconv.Itoa(int(pollId)),
+		AlbumID: strconv.Itoa(int(albumId)),
+	}
+
+	return graphVote, nil
 }
 
 // GetAlbum is the resolver for the getAlbum field.
