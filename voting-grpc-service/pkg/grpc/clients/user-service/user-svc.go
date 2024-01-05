@@ -4,8 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
-	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -13,6 +11,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	logging "voting-grpc/pkg/logging"
 )
 
 var (
@@ -24,13 +24,15 @@ var GrpcConnection any
 var GrpcClient pb.UserCredentialsClient
 
 func InitConnection() {
+	logger := logging.Log.WithFields(logging.StandardFields)
+
 	flag.Parse()
 	currentWorkDir, _ := os.Getwd()
 
 	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-cert.pem"), filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-key.pem"))
 
 	if err != nil {
-		log.Fatalf("failed to load client cert: %v", err)
+		logger.Error("failed to load client cert: %v", err)
 	}
 
 	ca := x509.NewCertPool()
@@ -38,10 +40,10 @@ func InitConnection() {
 	caBytes, err := os.ReadFile(caFilePath)
 
 	if err != nil {
-		log.Fatalf("failed to read ca cert %q: %v", caFilePath, err)
+		logger.Error("failed to read ca cert %q: %v", caFilePath, err)
 	}
 	if ok := ca.AppendCertsFromPEM(caBytes); !ok {
-		log.Fatalf("failed to parse %q", caFilePath)
+		logger.Error("failed to parse %q", caFilePath)
 	}
 
 	tlsConfig := &tls.Config{
@@ -50,18 +52,18 @@ func InitConnection() {
 		RootCAs:      ca,
 	}
 
-	fmt.Println("Start connecting to user gRPC service addr ", *addr)
+	logger.Info("Start connecting to user gRPC service addr ", *addr)
 
 	// Set up connection to gRPC user credential service
 	conn, conn_err := grpc.Dial(*addr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 
-	fmt.Printf("Error: %v\n", conn_err)
+	logger.Info("Error: ", conn_err)
 	GrpcConnection = conn
 
 	c := pb.NewUserCredentialsClient(conn)
 
 	if conn_err != nil {
-		log.Fatalf("did not connect: %v", err)
+		logger.Error("did not connect: %v", err)
 	}
 
 	GrpcClient = c

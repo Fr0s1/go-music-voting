@@ -19,7 +19,7 @@ var (
 )
 
 func init() {
-	// Log.SetFormatter(&logrus.JSONFormatter{})
+	Log.SetFormatter(&logrus.JSONFormatter{})
 	Log.SetReportCaller(true)
 	// Log.WithFields(StandardFields)
 }

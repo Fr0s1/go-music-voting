@@ -4,8 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
-	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -30,7 +28,7 @@ func InitVotingConnection() {
 	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/music-service-cert.pem"), filepath.Join(currentWorkDir, "pkg/tls/music-service-key.pem"))
 
 	if err != nil {
-		log.Fatalf("failed to load client cert: %v", err)
+		logger.Error("failed to load client cert: %v", err)
 	}
 
 	ca := x509.NewCertPool()
@@ -38,10 +36,10 @@ func InitVotingConnection() {
 	caBytes, err := os.ReadFile(caFilePath)
 
 	if err != nil {
-		log.Fatalf("failed to read ca cert %q: %v", caFilePath, err)
+		logger.Error("failed to read ca cert %q: %v", caFilePath, err)
 	}
 	if ok := ca.AppendCertsFromPEM(caBytes); !ok {
-		log.Fatalf("failed to parse %q", caFilePath)
+		logger.Error("failed to parse %q", caFilePath)
 	}
 
 	tlsConfig := &tls.Config{
@@ -50,18 +48,18 @@ func InitVotingConnection() {
 		RootCAs:      ca,
 	}
 
-	fmt.Println("Start connecting to voting gRPC service addr ", *votingGRPCAddr)
+	logger.Info("Start connecting to voting gRPC service addr ", *votingGRPCAddr)
 
 	// Set up connection to gRPC voting service
 	conn, conn_err := grpc.Dial(*votingGRPCAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 
-	fmt.Printf("Error: %v\n", conn_err)
+	logger.Info("Error: %v\n", conn_err)
 	VotingGRPCConnection = conn
 
 	c := pb.NewVotingClient(conn)
 
 	if conn_err != nil {
-		log.Fatalf("did not connect: %v", err)
+		logger.Error("did not connect: %v", err)
 	}
 
 	VotingGRPCClient = c

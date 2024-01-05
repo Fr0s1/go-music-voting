@@ -3,15 +3,19 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
+
+	logging "user-service/pkg/logging"
 )
 
 var Db *sql.DB
 
 func InitDB() {
+
+	logger := logging.Log.WithFields(logging.StandardFields)
+
 	dbHost := os.Getenv("DBHOST")
 
 	// cfg := mysql.Config{
@@ -32,16 +36,16 @@ func InitDB() {
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 
 	if err != nil {
-		log.Panic(err)
+		logger.Error(err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Panic(err)
+		logger.Error(err)
 	}
 
 	Db = db
 
-	fmt.Println("Connected")
+	logger.Info("Connected")
 }
 
 func CloseDB() error {
