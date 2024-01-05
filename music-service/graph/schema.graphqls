@@ -15,10 +15,12 @@ type User {
 type Vote {
   pollId: ID!
   albumId: ID!
+  userId: ID!
 }
 
 type PollAlbum {
-  poll: Poll!
+  pollId: ID!
+  albumId: ID!
   votes: [Vote!]!
 }
 

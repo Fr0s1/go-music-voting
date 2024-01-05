@@ -14,14 +14,21 @@ var Db *sql.DB
 func InitDB() {
 	dbHost := os.Getenv("DBHOST")
 
+	// cfg := mysql.Config{
+	// 	User:   os.Getenv("DBUSER"),
+	// 	Passwd: os.Getenv("DBPASS"),
+	// 	Net:    "tcp",
+	// 	Addr:   fmt.Sprintf("%s:3306", dbHost),
+	// 	DBName: "musicvoting",
+	// }
+
 	cfg := mysql.Config{
-		User:   os.Getenv("DBUSER"),
-		Passwd: os.Getenv("DBPASS"),
+		User:   "root",
+		Passwd: "hieu2203",
 		Net:    "tcp",
 		Addr:   fmt.Sprintf("%s:3306", dbHost),
 		DBName: "musicvoting",
 	}
-
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 
 	if err != nil {

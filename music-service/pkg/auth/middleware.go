@@ -37,17 +37,20 @@ func Middleware() func(http.Handler) http.Handler {
 			tokenStr := header
 
 			grpc_user, err := grpc_client.GrpcClient.GetUser(grpc_ctx, &pb.UserJWTToken{Token: tokenStr})
+
 			fmt.Printf("gRPC User response: %v\n", grpc_user)
+
+			var user *users.User
+
+			if err == nil {
+				user = &users.User{Id: strconv.Itoa(int(grpc_user.Id)), Username: grpc_user.Username}
+			}
+
 			fmt.Println("Reach middleware here 3")
-			user := users.User{Id: strconv.Itoa(int(grpc_user.Id)), Username: grpc_user.Username}
 
 			fmt.Printf("User: %v", user)
 
-			if err != nil {
-				http.Error(w, "Invalid token", http.StatusForbidden)
-			}
-
-			graphql_ctx := context.WithValue(r.Context(), userCtxKey, &user)
+			graphql_ctx := context.WithValue(r.Context(), userCtxKey, user)
 
 			r = r.WithContext(graphql_ctx)
 

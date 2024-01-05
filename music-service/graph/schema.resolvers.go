@@ -25,6 +25,10 @@ import (
 func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum) (*model.Album, error) {
 	user := auth.ForContext(ctx)
 
+	if user == nil {
+		return &model.Album{}, fmt.Errorf("access denied")
+	}
+
 	logging.Log.WithFields(logging.StandardFields).Info("User: ", user)
 
 	user_json, _ := json.Marshal(user)
@@ -32,10 +36,6 @@ func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum
 	logging.Log.WithFields(logging.StandardFields).Info("User info: ", string(user_json))
 
 	logging.Log.WithFields(logging.StandardFields).Info("Reach UploadAlbum function")
-
-	if user == nil {
-		return &model.Album{}, fmt.Errorf("access denied")
-	}
 
 	var album albums.Album
 
@@ -56,6 +56,8 @@ func (r *mutationResolver) UploadAlbum(ctx context.Context, input model.NewAlbum
 // CreatePoll is the resolver for the createPoll field.
 func (r *mutationResolver) CreatePoll(ctx context.Context, input model.NewPoll) (*model.Poll, error) {
 	user := auth.ForContext(ctx)
+
+	fmt.Printf("CreatePoll Mutation: user %v", user)
 
 	if user == nil {
 		return &model.Poll{}, fmt.Errorf("access denied")
