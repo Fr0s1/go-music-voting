@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+spec:
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+        - name: user
+          image: frost2203/go-user-service:v2
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "50m"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DBHOST
+              value: "22-3-0-131.mysql.pod.cluster.local"
+            - name: "DBUSER"
+              value: "root"
+            - name: "DBPASS"
+              value: ""
+            - name: ENV
+              value: "dev"

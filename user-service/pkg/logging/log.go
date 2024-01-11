@@ -10,7 +10,7 @@ var (
 	Log            = logrus.New()
 	HostName, _    = os.Hostname()
 	Env            = os.Getenv("ENV")
-	Service        = "voting-grpc-service"
+	Service        = "user-http"
 	StandardFields = logrus.Fields{
 		"hostname": HostName,
 		"env":      Env,

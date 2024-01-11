@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 	database "user-service/pkg/db/mysql"
 
 	"net/http"
@@ -119,6 +121,14 @@ func signin(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+
+	if port != "" {
+		port = "8080"
+	}
+
+	addr := fmt.Sprintf(":%s", port)
+
 	database.InitDB()
 
 	defer database.CloseDB()
@@ -127,5 +137,5 @@ func main() {
 
 	http.HandleFunc("/signin/", signin)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(addr, nil))
 }

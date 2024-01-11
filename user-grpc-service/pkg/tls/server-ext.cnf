@@ -1,2 +1,2 @@
 [SAN]
-subjectAltName=DNS:user.grpc.cloudfrosted.com,DNS:*.grpc.cloudfrosted.com,IP:127.0.0.1,IP:0.0.0.0
+subjectAltName=DNS:user.grpc.cloudfrosted.com,DNS:*.grpc.cloudfrosted.com,DNS:user.*.svc.cluster.local,IP:127.0.0.1,IP:0.0.0.0
