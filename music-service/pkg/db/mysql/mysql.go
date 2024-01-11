@@ -2,8 +2,10 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	mysql "github.com/go-sql-driver/mysql"
 
 	logging "music-service/pkg/logging"
 )
@@ -11,21 +13,41 @@ import (
 var Db *sql.DB
 
 func InitDB() {
-	log := logging.Log.WithFields(logging.StandardFields)
+	logger := logging.Log.WithFields(logging.StandardFields)
+	// logger := logging.Log
 
-	db, err := sql.Open("mysql", "root:hieu2203@tcp(localhost)/musicvoting")
+	dbHost := os.Getenv("DBHOST")
+
+	cfg := mysql.Config{
+		User:                 os.Getenv("DBUSER"),
+		Passwd:               os.Getenv("DBPASS"),
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:3306", dbHost),
+		DBName:               "musicvoting",
+		AllowNativePasswords: true,
+	}
+
+	// cfg := mysql.Config{
+	// 	User:   "root",
+	// 	Passwd: "hieu2203",
+	// 	Net:    "tcp",
+	// 	Addr:   fmt.Sprintf("%s:3306", dbHost),
+	// 	DBName: "musicvoting",
+	// }
+	// db, err := sql.Open("mysql", "root:hieu2203@tcp(localhost)/musicvoting")
+	db, err := sql.Open("mysql", cfg.FormatDSN())
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 	}
 
 	Db = db
 
-	log.Info("Connected")
+	logger.Info("Connected to database")
 }
 
 func CloseDB() error {

@@ -19,11 +19,12 @@ func InitDB() {
 	dbHost := os.Getenv("DBHOST")
 
 	cfg := mysql.Config{
-		User:   os.Getenv("DBUSER"),
-		Passwd: os.Getenv("DBPASS"),
-		Net:    "tcp",
-		Addr:   fmt.Sprintf("%s:3306", dbHost),
-		DBName: "musicvoting",
+		User:                 os.Getenv("DBUSER"),
+		Passwd:               os.Getenv("DBPASS"),
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:3306", dbHost),
+		DBName:               "musicvoting",
+		AllowNativePasswords: true,
 	}
 
 	// cfg := mysql.Config{

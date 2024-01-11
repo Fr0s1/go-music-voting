@@ -106,7 +106,7 @@ func main() {
 
 	pb.RegisterUserCredentialsServer(grpcServer, s)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost: %d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 
 	if err != nil {
 		logger.Fatal("failed to listen: ", err)

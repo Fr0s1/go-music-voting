@@ -31,7 +31,8 @@ import (
 )
 
 var (
-	port = flag.Int("port", 50052, "The server port")
+	port   = flag.Int("port", 50052, "The server port")
+	logger = logging.Log.WithFields(logging.StandardFields)
 )
 
 type VotingServer struct {
@@ -77,7 +78,7 @@ func (s *VotingServer) AddPollAlbums(stream pb.Voting_AddPollAlbumsServer) error
 	for {
 		pollAlbum, err := stream.Recv()
 
-		logging.Log.Info("AddPollAlbums gRPC Server: received albums from server", pollAlbum)
+		logger.Info("AddPollAlbums gRPC Server: received albums from server", pollAlbum)
 
 		if pollAlbum == nil {
 			return nil
@@ -125,7 +126,7 @@ func (s *VotingServer) VoteAlbum(ctx context.Context, in *pb.Vote) (*pb.Vote, er
 	_, err := model.VotePollAlbum(in.PollId, in.AlbumId, in.UserId)
 
 	if err != nil {
-		logging.Log.Error(err)
+		logger.Error(err)
 
 		return &pb.Vote{}, nil
 	}
@@ -136,18 +137,18 @@ func (s *VotingServer) VoteAlbum(ctx context.Context, in *pb.Vote) (*pb.Vote, er
 func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*pb.PollDetails, error) {
 	pollId := in.PollId
 
-	logging.Log.Info("GetPollDetails: Reach here")
+	logger.Info("GetPollDetails: Reach here")
 	rows, err := database.Db.Query("SELECT p.Name as PollName, p.CreatorID, a.ID, a.Artist, a.Name FROM Polls p LEFT JOIN Poll_Album pa on p.ID = pa.PollID LEFT JOIN Albums a on pa.AlbumID = a.ID WHERE p.ID= ?", pollId)
 
 	// Keep track
 	totalAlbum := 0
 
 	if err != nil {
-		logging.Log.Error(err)
+		logger.Error(err)
 	}
 
 	defer rows.Close()
-	logging.Log.Info("GetPollDetails: Reach here 2")
+	logger.Info("GetPollDetails: Reach here 2")
 
 	var pollName string
 	var creatorId int32
@@ -160,11 +161,11 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		var album model.Album
 
 		if err := rows.Scan(&pollName, &creatorId, &album.Id, &album.Artist, &album.Name); err != nil {
-			logging.Log.Error(err)
+			logger.Error(err)
 		}
 
-		logging.Log.Info("GetPollDetails: Reach here 3")
-		logging.Log.Info("Album value: %v", album)
+		logger.Info("GetPollDetails: Reach here 3")
+		logger.Info("Album value: %v", album)
 
 		wg.Add(1)
 		ctx, cancelFunc := context.WithTimeoutCause(ctx, time.Second*1, errors.New("query db takes too long"))
@@ -180,13 +181,13 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 			select {
 			case <-ctx.Done():
-				logging.Log.Info("Error when querying database: ", ctx.Err())
+				logger.Info("Error when querying database: ", ctx.Err())
 				return
 			default:
-				logging.Log.Info("GetPollDetails Routine: Reach here 1")
+				logger.Info("GetPollDetails Routine: Reach here 1")
 				rowsRoutine, _ := database.Db.Query("SELECT VoterID, PollID, AlbumID FROM Votes WHERE PollID = ? and AlbumID = ?", pollId, album.Id)
 				defer rowsRoutine.Close()
-				logging.Log.Info("GetPollDetails Routine: Reach here 2")
+				logger.Info("GetPollDetails Routine: Reach here 2")
 
 				var vote pb.Vote
 
@@ -195,29 +196,29 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 				albumVotesMap[album] = []*pb.Vote{}
 
 				for rowsRoutine.Next() {
-					logging.Log.Info("GetPollDetails Routine: Reach here 3")
+					logger.Info("GetPollDetails Routine: Reach here 3")
 					if err := rowsRoutine.Scan(&vote.UserId, &vote.PollId, &vote.AlbumId); err != nil {
-						logging.Log.Error(err)
+						logger.Error(err)
 
 						continue
 					}
-					logging.Log.Info("GetPollDetails Routine: Reach here 4")
+					logger.Info("GetPollDetails Routine: Reach here 4")
 
 					fmt.Printf("Value: %+v\n", vote)
 
 					albumVotesMap[album] = append(albumVotesMap[album], &vote)
 				}
-				logging.Log.Info("GetPollDetails Routine: Reach here 5")
+				logger.Info("GetPollDetails Routine: Reach here 5")
 				albumVotesChan <- albumVotesMap
-				logging.Log.Info("GetPollDetails Routine: Reach here 6")
+				logger.Info("GetPollDetails Routine: Reach here 6")
 			}
 
 		}(pollId, album, albumVotesChan, ctx, &wg)
 	}
-	logging.Log.Info("GetPollDetails: Reach here 4")
+	logger.Info("GetPollDetails: Reach here 4")
 	// wg.Wait()
 	// close(albumVotesChan)
-	// logging.Log.Info("GetPollDetails: Reach here 6")
+	// logger.Info("GetPollDetails: Reach here 6")
 
 	poll := &pb.PollDetails{}
 
@@ -227,24 +228,24 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 	var albumsVotesInPoll []*pb.PollDetails_AlbumVote
 
-	logging.Log.Info("GetPollDetails: Reach here 7")
-	logging.Log.Info("Total album: ", totalAlbum)
+	logger.Info("GetPollDetails: Reach here 7")
+	logger.Info("Total album: ", totalAlbum)
 
 	go func() {
 		wg.Wait()
-		logging.Log.Info("GetPollDetails: Reach here 5")
+		logger.Info("GetPollDetails: Reach here 5")
 		close(albumVotesChan)
 	}()
 
 	for i := 0; i < totalAlbum; i++ {
 		albumVotes := <-albumVotesChan
-		logging.Log.Info("GetPollDetails: Reach here 8")
-		logging.Log.Info("Album votes: %v", albumVotes)
+		logger.Info("GetPollDetails: Reach here 8")
+		logger.Info("Album votes: %v", albumVotes)
 
 		pollAlbumVotes := &pb.PollDetails_AlbumVote{}
 
 		for album, votes := range albumVotes {
-			logging.Log.Info("Album value: %v", album)
+			logger.Info("Album value: %v", album)
 
 			pollAlbumVotes.Album = &pb.Album{
 				Id:     album.Id,
@@ -267,8 +268,6 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 func main() {
 	flag.Parse()
-
-	logger := logging.Log.WithFields(logging.StandardFields)
 
 	currentWorkDir, _ := os.Getwd()
 	cert, err := tls.LoadX509KeyPair(filepath.Join(currentWorkDir, "pkg/tls/voting-grpc-cert.pem"), filepath.Join(currentWorkDir, "./pkg/tls/voting-grpc-key.pem"))
@@ -297,7 +296,7 @@ func main() {
 
 	grpcServer := grpc.NewServer(grpc.Creds(credentials.NewTLS(tlsConfig)))
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost: %d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

@@ -123,7 +123,7 @@ func signin(w http.ResponseWriter, r *http.Request) {
 func main() {
 	port := os.Getenv("PORT")
 
-	if port != "" {
+	if port == "" {
 		port = "8080"
 	}
 

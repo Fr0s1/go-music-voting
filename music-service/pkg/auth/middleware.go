@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	grpc_client "music-service/pkg/grpc/client"
 	"net/http"
 	"strconv"
@@ -10,9 +9,15 @@ import (
 
 	pb "music-service/pkg/grpc"
 	"music-service/pkg/users"
+
+	logging "music-service/pkg/logging"
 )
 
 var userCtxKey = &contextKey{"user"}
+
+var (
+	logger = logging.Log.WithFields(logging.StandardFields)
+)
 
 type contextKey struct {
 	name string
@@ -21,7 +26,7 @@ type contextKey struct {
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("Reach middleware here")
+			logger.Info("Reach middleware here")
 			header := r.Header.Get("Authorization")
 
 			if header == "" {
@@ -29,7 +34,7 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 
-			fmt.Println("Reach middleware here 1")
+			logger.Info("Reach middleware here 1")
 			grpc_ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 
 			defer cancel()
@@ -38,7 +43,7 @@ func Middleware() func(http.Handler) http.Handler {
 
 			grpc_user, err := grpc_client.GrpcClient.GetUser(grpc_ctx, &pb.UserJWTToken{Token: tokenStr})
 
-			fmt.Printf("gRPC User response: %v\n", grpc_user)
+			logger.Info("gRPC User response: ", grpc_user)
 
 			var user *users.User
 
@@ -46,9 +51,9 @@ func Middleware() func(http.Handler) http.Handler {
 				user = &users.User{Id: strconv.Itoa(int(grpc_user.Id)), Username: grpc_user.Username}
 			}
 
-			fmt.Println("Reach middleware here 3")
+			logger.Info("Reach middleware here 3")
 
-			fmt.Printf("User: %v", user)
+			logger.Info("User: ", user)
 
 			graphql_ctx := context.WithValue(r.Context(), userCtxKey, user)
 

@@ -1,25 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user
+  name: voting-grpc
 spec:
   selector:
     matchLabels:
-      app: user
+      app: voting-grpc
   template:
     metadata:
       labels:
-        app: user
+        app: voting-grpc
     spec:
       containers:
-        - name: user
-          image: frost2203/go-user-service:v3
+        - name: voting-grpc
+          image: frost2203/go-voting-grpc-service:v3
+          args:
+            - "-addr"
+            - "user-grpc.default.svc.cluster.local:50051"
           resources:
             limits:
               memory: "128Mi"
               cpu: "50m"
           ports:
-            - containerPort: 8080
+            - containerPort: 50052
           env:
             - name: DBHOST
               value: "22-3-0-131.mysql.pod.cluster.local"

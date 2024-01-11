@@ -1,25 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user
+  name: music
 spec:
   selector:
     matchLabels:
-      app: user
+      app: music
   template:
     metadata:
       labels:
-        app: user
+        app: music
     spec:
       containers:
-        - name: user
-          image: frost2203/go-user-service:v3
+        - name: music
+          image: frost2203/go-music-service:v3
           resources:
             limits:
               memory: "128Mi"
               cpu: "50m"
+          args:
+            - "-useraddr"
+            - "user-grpc.default.svc.cluster.local:50051"
+            - "-votingaddr"
+            - "voting-grpc.default.svc.cluster.local:50052"
           ports:
-            - containerPort: 8080
+            - containerPort: 8000
           env:
             - name: DBHOST
               value: "22-3-0-131.mysql.pod.cluster.local"
