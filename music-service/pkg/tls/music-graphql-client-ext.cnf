@@ -1,2 +1,2 @@
 [SAN]
-subjectAltName=DNS:music-graphql.cloudfrosted.com,DNS:*.cloudfrosted.com,IP:127.0.0.1,IP:0.0.0.0
+subjectAltName=DNS:music-graphql.cloudfrosted.com,DNS:*.cloudfrosted.com,DNS:music-graphql.svc.cluster.local,DNS:music-graphql.*.svc.cluster.local,IP:127.0.0.1,IP:0.0.0.0

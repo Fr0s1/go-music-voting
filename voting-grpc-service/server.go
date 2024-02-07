@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -168,7 +167,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 		logger.Info("Album value: %v", album)
 
 		wg.Add(1)
-		ctx, cancelFunc := context.WithTimeoutCause(ctx, time.Second*1, errors.New("query db takes too long"))
+		ctx, cancelFunc := context.WithTimeout(ctx, time.Second*5)
 		defer cancelFunc()
 
 		go func(pollId int64, album model.Album, albumVotesChan chan<- map[model.Album][]*pb.Vote, ctx context.Context, wg *sync.WaitGroup) {
@@ -181,7 +180,7 @@ func (s *VotingServer) GetPollDetails(ctx context.Context, in *pb.PollQuery) (*p
 
 			select {
 			case <-ctx.Done():
-				logger.Info("Error when querying database: ", ctx.Err())
+				logger.Error("Error when querying database: ", ctx.Err().Error())
 				return
 			default:
 				logger.Info("GetPollDetails Routine: Reach here 1")
@@ -289,7 +288,7 @@ func main() {
 	}
 
 	tlsConfig := &tls.Config{
-		ClientAuth:   tls.NoClientCert,
+		ClientAuth:   tls.RequestClientCert,
 		Certificates: []tls.Certificate{cert},
 		ClientCAs:    ca,
 	}

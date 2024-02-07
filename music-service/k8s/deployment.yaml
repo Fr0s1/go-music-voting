@@ -27,7 +27,7 @@ spec:
             - containerPort: 8000
           env:
             - name: DBHOST
-              value: "22-3-0-131.mysql.pod.cluster.local"
+              value: "10-36-3-3.mysql.pod.cluster.local"
             - name: "DBUSER"
               value: "root"
             - name: "DBPASS"

@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: user-grpc
-          image: frost2203/go-user-grpc-service:v5
+          image: frost2203/go-user-grpc-service:v6
           resources:
             limits:
               memory: "128Mi"
@@ -22,7 +22,7 @@ spec:
             - containerPort: 50051
           env:
             - name: DBHOST
-              value: "22-3-0-131.mysql.pod.cluster.local"
+              value: "10-36-3-3.mysql.pod.cluster.local"
             - name: "DBUSER"
               value: "root"
             - name: "DBPASS"

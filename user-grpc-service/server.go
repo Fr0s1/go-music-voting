@@ -93,7 +93,7 @@ func main() {
 	}
 
 	tlsConfig := &tls.Config{
-		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientAuth:   tls.NoClientCert,
 		Certificates: []tls.Certificate{cert},
 		ClientCAs:    ca,
 	}
